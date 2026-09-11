@@ -1,0 +1,6 @@
+.vercel
+.env*
+backend/bhtl_db
+backend/bhtl_db
+node_modules/
+.DS_Store
