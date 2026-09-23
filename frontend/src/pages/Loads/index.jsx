@@ -1,4 +1,4 @@
-import { FaTrash, FaWrench, FaEdit, FaExclamationTriangle, FaMapMarkerAlt, FaFlagCheckered, FaBox } from 'react-icons/fa';
+import { FaTrash, FaWrench, FaEdit, FaExclamationTriangle, FaMapMarkerAlt, FaFlagCheckered, FaBox, FaEye, FaPlus } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/client';
@@ -127,9 +127,9 @@ export default function Loads() {
         actions={
           <div className="flex gap-8">
             <button className="btn btn-secondary" onClick={handleBackfill} disabled={backfilling}>
-              {backfilling ? 'Fixing...' : '<FaWrench /> Fix Historical Revenue'}
+              {backfilling ? 'Fixing...' : <><FaWrench /> Fix Historical Revenue</>}
             </button>
-            <button className="btn btn-primary" onClick={openCreate}>+ New Load</button>
+            <button className="btn btn-primary" onClick={openCreate}><FaPlus /> New Load</button>
           </div>
         }
       />
@@ -203,7 +203,7 @@ export default function Loads() {
                     <td>
                       <div className="flex gap-8">
                         <button className="btn btn-ghost btn-sm" onClick={() => openEdit(load)}><FaEdit /></button>
-                        <Link to={`/loads/${load.id}`} className="btn btn-ghost btn-sm">👁</Link>
+                        <Link to={`/loads/${load.id}`} className="btn btn-ghost btn-sm"><FaEye /></Link>
                         <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(load)}><FaTrash /></button>
                       </div>
                     </td>

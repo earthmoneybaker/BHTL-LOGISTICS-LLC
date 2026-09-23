@@ -124,7 +124,7 @@ export default function LoadDetail() {
       <div className="tabs">
         {['details', 'documents', 'expenses'].map(t => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>
-            {t === 'details' ? '<FaClipboardList /> Details' : t === 'documents' ? `<FaFileAlt /> Documents (${documents.length})` : `<FaCreditCard /> Expenses (${expenses.length})`}
+            {t === 'details' ? <><FaClipboardList /> Details</> : t === 'documents' ? <><FaFileAlt /> Documents ({documents.length})</> : <><FaCreditCard /> Expenses ({expenses.length})</>}
           </button>
         ))}
       </div>
@@ -167,10 +167,10 @@ export default function LoadDetail() {
             <div className="card mb-16">
               <div className="detail-section-title">Assignment</div>
               {[
-                ['<FaTruck /> Truck', load.truck_unit || '—'],
-                ['<FaTractor /> Trailer', load.trailer_unit || '—'],
-                ['<FaUser /> Driver', load.driver_first ? `${load.driver_first} ${load.driver_last}` : '—'],
-                ['📞 Driver Phone', load.driver_phone || '—'],
+                [<><FaTruck /> Truck</>, load.truck_unit || '—'],
+                [<><FaTractor /> Trailer</>, load.trailer_unit || '—'],
+                [<><FaUser /> Driver</>, load.driver_first ? `${load.driver_first} ${load.driver_last}` : '—'],
+                [<><FaPhone /> Driver Phone</>, load.driver_phone || '—'],
               ].map(([l, v]) => (
                 <div key={l} className="detail-field">
                   <div className="detail-field-label">{l}</div>

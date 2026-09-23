@@ -92,7 +92,7 @@ export default function Drivers() {
                     <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{d.clearinghouse_status || '—'}</td>
                     <td>
                       <div className="flex gap-8">
-                        <Link to={`/drivers/${d.id}`} className="btn btn-ghost btn-sm">👁</Link>
+                        <Link to={`/drivers/${d.id}`} className="btn btn-ghost btn-sm"><FaEye /></Link>
                         <button className="btn btn-ghost btn-sm" onClick={() => openEdit(d)}><FaEdit /></button>
                         <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(d)}><FaTrash /></button>
                       </div>

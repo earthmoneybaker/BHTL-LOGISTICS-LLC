@@ -146,7 +146,7 @@ export default function Fleet() {
                         <td><span className={`badge badge-${t.status}`}>{t.status.replace(/_/g,' ')}</span></td>
                         <td>
                           <div className="flex gap-8">
-                            <Link to={`/fleet/trucks/${t.id}`} className="btn btn-ghost btn-sm">👁</Link>
+                            <Link to={`/fleet/trucks/${t.id}`} className="btn btn-ghost btn-sm"><FaEye /></Link>
                             <button className="btn btn-ghost btn-sm" onClick={() => openTruck(t)}><FaEdit /></button>
                             <button className="btn btn-ghost btn-sm" onClick={() => openMaint(null, { entity_type:'truck', truck_id:t.id })}><FaWrench /></button>
                             <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget({ id:t.id, type:'truck', name:`Truck ${t.unit_number}` })}><FaTrash /></button>

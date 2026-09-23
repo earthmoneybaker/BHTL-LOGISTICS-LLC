@@ -67,7 +67,7 @@ export default function Users() {
                     <td className="muted">{u.email}</td>
                     <td>
                       <span className={`badge ${u.role === 'admin' ? 'badge-paid' : 'badge-invoiced'}`}>
-                        {u.role === 'admin' ? '<FaCrown /> Admin' : '<FaUser /> Staff'}
+                        {u.role === 'admin' ? <><FaCrown /> Admin</> : <><FaUser /> Staff</>}
                       </span>
                     </td>
                     <td><span className={`badge ${u.is_active ? 'badge-active' : 'badge-inactive'}`}>{u.is_active ? 'Active' : 'Inactive'}</span></td>

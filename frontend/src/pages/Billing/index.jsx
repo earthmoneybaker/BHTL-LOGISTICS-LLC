@@ -1,4 +1,4 @@
-import { FaEdit, FaChartBar, FaFileAlt } from 'react-icons/fa';
+import { FaEdit, FaChartBar, FaFileAlt, FaDownload, FaPlus } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../api/client';
 import { downloadFile } from '../../api/client';
@@ -73,7 +73,7 @@ export default function Billing() {
       <PageHeader title="Billing & Invoices" subtitle={`${invoices.length} invoices — ${formatCurrency(totalUnpaid)} outstanding`} />
 
       <div className="tabs">
-        {[['invoices','<FaFileAlt /> All Invoices'], ['aging','<FaChartBar /> Aging Report']].map(([t,l]) => (
+        {[['invoices', <><FaFileAlt /> All Invoices</>], ['aging', <><FaChartBar /> Aging Report</>]].map(([t,l]) => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{l}</button>
         ))}
       </div>
@@ -114,7 +114,7 @@ export default function Billing() {
                         <td>
                           <div className="flex gap-8">
                             <button className="btn btn-secondary btn-sm" onClick={() => openEdit(inv)}><FaEdit /></button>
-                            <button className="btn btn-secondary btn-sm" onClick={() => downloadPdf(inv.id)}>📥 PDF</button>
+                            <button className="btn btn-secondary btn-sm" onClick={() => downloadPdf(inv.id)}><FaDownload /> PDF</button>
                             {inv.status !== 'voided' && (
                               <button className="btn btn-danger btn-sm" onClick={() => handleVoid(inv)}>Void</button>
                             )}
@@ -168,7 +168,7 @@ export default function Billing() {
                       <td>
                         <div className="flex gap-8">
                           <button className="btn btn-secondary btn-sm" onClick={() => openEdit(inv)}>Mark Paid</button>
-                          <button className="btn btn-secondary btn-sm" onClick={() => downloadPdf(inv.id)}>📥 PDF</button>
+                          <button className="btn btn-secondary btn-sm" onClick={() => downloadPdf(inv.id)}><FaDownload /> PDF</button>
                         </div>
                       </td>
                     </tr>

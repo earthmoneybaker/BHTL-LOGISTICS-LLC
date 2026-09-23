@@ -45,8 +45,8 @@ export default function PnL() {
         subtitle="Automatic — live from invoices, expenses, and payroll"
         actions={
           <div className="flex gap-8">
-            <button className="btn btn-secondary" onClick={exportCsv}>⬇ CSV</button>
-            <button className="btn btn-secondary" onClick={exportPdf}>⬇ PDF</button>
+            <button className="btn btn-secondary" onClick={exportCsv}><FaDownload /> CSV</button>
+            <button className="btn btn-secondary" onClick={exportPdf}><FaDownload /> PDF</button>
           </div>
         }
       />
@@ -89,7 +89,7 @@ export default function PnL() {
       </div>
 
       <div className="tabs">
-        {[['summary','<FaChartBar /> Summary'],['breakdown','<FaSearch /> Breakdown'],['trend','<FaChartLine /> 12-Month Trend']].map(([t,l]) => (
+        {[['summary', <><FaChartBar /> Summary</>],['breakdown', <><FaSearch /> Breakdown</>],['trend', <><FaChartLine /> 12-Month Trend</>]].map(([t,l]) => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{l}</button>
         ))}
       </div>

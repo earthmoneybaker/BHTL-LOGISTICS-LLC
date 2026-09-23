@@ -148,7 +148,7 @@ export default function Payroll() {
           {form.person_type === 'driver' && form.driver_id && (
             <div style={{ marginBottom:'16px' }}>
               <button type="button" className="btn btn-secondary" onClick={calculatePay} disabled={calculating}>
-                {calculating ? 'Calculating...' : '<FaCalculator /> Auto-Calculate from Completed Loads'}
+                {calculating ? 'Calculating...' : <><FaCalculator /> Auto-Calculate from Completed Loads</>}
               </button>
             </div>
           )}

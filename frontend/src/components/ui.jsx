@@ -1,4 +1,4 @@
-import { FaInbox } from 'react-icons/fa';
+import { FaInbox, FaTimes } from 'react-icons/fa';
 // Status badge for loads, invoices, trucks, etc.
 export function StatusBadge({ status }) {
   if (!status) return null;
@@ -33,7 +33,7 @@ export function ConfirmModal({ title, message, onConfirm, onCancel, danger = tru
       <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <span className="modal-title">{title}</span>
-          <button className="modal-close" onClick={onCancel}>✕</button>
+          <button className="modal-close" onClick={onCancel}><FaTimes /></button>
         </div>
         <div className="modal-body">
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{message}</p>
@@ -90,7 +90,7 @@ export function Modal({ title, onClose, children, footer, size = '' }) {
       <div className={`modal ${size}`} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <span className="modal-title">{title}</span>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose}><FaTimes /></button>
         </div>
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-footer">{footer}</div>}

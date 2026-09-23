@@ -1,4 +1,4 @@
-import { FaTruck, FaGasPump, FaChartBar, FaClipboardList, FaFileAlt, FaCreditCard, FaBox, FaMoneyBillWave, FaChartLine, FaDollarSign, FaUsers, FaCar, FaHandshake, FaCog } from 'react-icons/fa';
+import { FaTruck, FaGasPump, FaChartBar, FaClipboardList, FaFileAlt, FaCreditCard, FaBox, FaMoneyBillWave, FaChartLine, FaDollarSign, FaUsers, FaCar, FaHandshake, FaCog, FaFileImport, FaSignOutAlt } from 'react-icons/fa';
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -28,7 +28,7 @@ const NAV_ITEMS = [
   { section: 'ADMIN', items: [
     { to: '/users', label: 'User Management', icon: <FaUsers />, adminOnly: true },
     { to: '/settings', label: 'Settings', icon: <FaCog />, adminOnly: true },
-    { to: '/import', label: 'Bulk Import', icon: '📥', adminOnly: true },
+    { to: '/import', label: 'Bulk Import', icon: <FaFileImport />, adminOnly: true },
   ]},
 ];
 
@@ -87,9 +87,9 @@ export default function Sidebar({ open, onClose }) {
           <button
             onClick={logout}
             className="btn btn-secondary btn-sm"
-            style={{ marginTop: '10px', width: '100%' }}
+          style={{ marginTop: '10px', width: '100%', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            Sign Out
+            <FaSignOutAlt /> Sign Out
           </button>
         </div>
       </nav>

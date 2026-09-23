@@ -1,4 +1,4 @@
-import { FaCrown } from 'react-icons/fa';
+import { FaCrown, FaBars, FaSun, FaMoon } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -52,7 +52,7 @@ export default function Layout({ children }) {
             onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
           >
-            ☰
+            <FaBars />
           </button>
 
           <div className="topbar-title">{title}</div>
@@ -65,13 +65,13 @@ export default function Layout({ children }) {
             aria-label="Toggle light/dark mode"
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            {theme === 'dark' ? '☀️' : '🌙'}
+            {theme === 'dark' ? <FaSun /> : <FaMoon />}
           </button>
 
           <div className="topbar-user">
             <div>
               <div className="topbar-user-name">{user?.name || user?.full_name}</div>
-              <div className="topbar-user-role">{user?.role === 'admin' ? '<FaCrown /> Admin' : 'Office Staff'}</div>
+              <div className="topbar-user-role">{user?.role === 'admin' ? <><FaCrown /> Admin</> : 'Office Staff'}</div>
             </div>
             <div className="topbar-avatar">{initials}</div>
           </div>

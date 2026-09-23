@@ -101,7 +101,7 @@ export default function Customers() {
                     </td>
                     <td>
                       <div className="flex gap-8">
-                        <button className="btn btn-ghost btn-sm" onClick={() => openDetail(c.id)}>👁</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openDetail(c.id)}><FaEye /></button>
                         <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}><FaEdit /></button>
                         <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(c)}><FaTrash /></button>
                       </div>

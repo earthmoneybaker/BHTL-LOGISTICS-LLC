@@ -1,4 +1,4 @@
-import { FaTruck, FaCheck, FaExclamationTriangle, FaFileAlt, FaBox, FaDollarSign, FaBell } from 'react-icons/fa';
+import { FaTruck, FaCheck, FaExclamationTriangle, FaFileAlt, FaBox, FaDollarSign, FaBell, FaExclamationCircle } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client';
@@ -72,7 +72,7 @@ export default function Dashboard() {
       {/* Expiration Alert Banner */}
       {expirationsDanger.length > 0 && (
         <div className="alert alert-danger mb-16">
-          🚨 <strong>{expirationsDanger.length} item{expirationsDanger.length > 1 ? 's' : ''}</strong> expiring within 30 days — 
+          <FaExclamationCircle /> <strong>{expirationsDanger.length} item{expirationsDanger.length > 1 ? 's' : ''}</strong> expiring within 30 days — 
           <Link to="/compliance" style={{ color: '#FCA5A5', marginLeft: '6px', textDecoration: 'underline' }}>
             View all →
           </Link>

@@ -97,7 +97,7 @@ export default function Compliance() {
 
       {(expiredCount > 0 || expiringCount > 0) && (
         <div className="alert alert-danger mb-16">
-          🚨 <strong>{expiredCount} expired</strong> · <strong>{expiringCount} expiring within 30 days</strong> — review below
+          <FaExclamationCircle /> <strong>{expiredCount} expired</strong> · <strong>{expiringCount} expiring within 30 days</strong> — review below
         </div>
       )}
 

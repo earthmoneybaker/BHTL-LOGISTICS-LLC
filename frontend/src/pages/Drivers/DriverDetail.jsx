@@ -89,7 +89,7 @@ export default function DriverDetail() {
       <div className="tabs">
         {['profile','dq-file','loads','documents','payroll'].map(t => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>
-            {t === 'profile' ? '<FaUser /> Profile' : t === 'dq-file' ? `<FaClipboardList /> DQ File (${dqComplete}/${dqTotal})` : t === 'loads' ? `<FaBox /> Loads (${loads.length})` : t === 'documents' ? `<FaFileAlt /> Docs (${docs.length})` : '<FaMoneyBillWave /> Payroll'}
+            {t === 'profile' ? <><FaUser /> Profile</> : t === 'dq-file' ? <><FaClipboardList /> DQ File ({dqComplete}/{dqTotal})</> : t === 'loads' ? <><FaBox /> Loads ({loads.length})</> : t === 'documents' ? <><FaFileAlt /> Docs ({docs.length})</> : <><FaMoneyBillWave /> Payroll</>}
           </button>
         ))}
       </div>

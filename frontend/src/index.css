@@ -6,26 +6,26 @@
    ===================================================================== */
 
 :root {
-  /* Colors */
-  --bg-primary: #070E1C;
-  --bg-secondary: #0B1830;
-  --bg-card: #101B36;
-  --bg-card-hover: #16233F;
-  --bg-sidebar: #060D1A;
-  --border-color: #1D2C4D;
-  --border-subtle: #131F3B;
+  /* Premium Deep Slate Theme */
+  --bg-primary: #0B0F19;
+  --bg-secondary: #111827;
+  --bg-card: rgba(17, 24, 39, 0.75);
+  --bg-card-hover: rgba(31, 41, 55, 0.85);
+  --bg-sidebar: rgba(11, 15, 25, 0.85);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.04);
 
-  --brand-blue: #1E3A8A;
+  --brand-blue: #2563EB;
   --brand-blue-light: #3B82F6;
-  --brand-blue-glow: rgba(59, 130, 246, 0.18);
-  --brand-orange: #FB7B12;
-  --brand-orange-light: #FDBA74;
-  --brand-orange-glow: rgba(251, 123, 18, 0.15);
+  --brand-blue-glow: rgba(59, 130, 246, 0.25);
+  --brand-orange: #F97316;
+  --brand-orange-light: #FB923C;
+  --brand-orange-glow: rgba(249, 115, 22, 0.25);
 
   --text-primary: #F8FAFC;
-  --text-secondary: #A3B3CC;
-  --text-muted: #6B7A99;
-  --text-inverse: #070E1C;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-inverse: #0B0F19;
 
   /* Status colors */
   --status-booked: #3B82F6;
@@ -66,9 +66,8 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--bg-primary);
   background-image:
-    radial-gradient(circle at 12% -8%, rgba(59,130,246,0.10) 0%, transparent 45%),
-    radial-gradient(circle at 92% 8%, rgba(251,123,18,0.05) 0%, transparent 40%),
-    radial-gradient(circle at 50% 110%, rgba(59,130,246,0.06) 0%, transparent 50%);
+    radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(249, 115, 22, 0.06) 0%, transparent 50%);
   background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.5;
@@ -107,6 +106,8 @@ body {
 .sidebar {
   width: var(--sidebar-width);
   background: var(--bg-sidebar);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-right: 1px solid var(--border-color);
   position: fixed;
   top: 0;
@@ -117,7 +118,7 @@ body {
   z-index: 100;
   display: flex;
   flex-direction: column;
-  transition: transform 0.25s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar::-webkit-scrollbar { width: 4px; }
@@ -188,10 +189,11 @@ body {
 }
 
 .nav-item.active {
-  background: linear-gradient(90deg, rgba(59,130,246,0.18), transparent);
+  background: linear-gradient(90deg, rgba(59,130,246,0.15), transparent);
   color: var(--brand-blue-light);
   border-left-color: var(--brand-blue-light);
   font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--brand-blue-light);
 }
 
 .nav-item .nav-icon {
@@ -218,7 +220,9 @@ body {
    ===================== */
 .topbar {
   height: var(--topbar-height);
-  background: var(--bg-secondary);
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-color);
   position: fixed;
   top: 0;
@@ -229,7 +233,7 @@ body {
   align-items: center;
   padding: 0 28px;
   gap: 16px;
-  transition: left 0.25s ease;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .topbar-title {
@@ -286,12 +290,14 @@ body {
    CARDS
    ===================== */
 .card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.025), transparent 40%), var(--bg-card);
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 24px;
-  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.03);
-  transition: border-color 0.2s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
 .card-sm { padding: 16px; border-radius: var(--radius-md); }
@@ -407,31 +413,38 @@ body {
 .btn-primary {
   background: linear-gradient(135deg, #3B82F6, #2563EB);
   color: white;
-  box-shadow: 0 2px 10px rgba(59,130,246,0.25);
+  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
 }
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563EB, #1D4ED8);
-  box-shadow: 0 4px 16px rgba(59,130,246,0.35);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #60A5FA, #3B82F6);
+  box-shadow: 0 6px 20px rgba(59,130,246,0.23);
+  transform: translateY(-2px);
+}
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 .btn-orange {
-  background: linear-gradient(135deg, #FB7B12, #EA6A05);
+  background: linear-gradient(135deg, #F97316, #EA580C);
   color: white;
-  box-shadow: 0 2px 10px rgba(251,123,18,0.25);
+  box-shadow: 0 4px 14px 0 rgba(249, 115, 22, 0.39);
 }
 .btn-orange:hover:not(:disabled) {
-  background: linear-gradient(135deg, #FDBA74, #FB7B12);
-  box-shadow: 0 4px 16px rgba(251,123,18,0.35);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #FB923C, #F97316);
+  box-shadow: 0 6px 20px rgba(249,115,22,0.23);
+  transform: translateY(-2px);
+}
+.btn-orange:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 .btn-secondary {
-  background: var(--bg-card);
-  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
   border: 1px solid var(--border-color);
 }
-.btn-secondary:hover:not(:disabled) { background: var(--bg-card-hover); color: var(--text-primary); }
+.btn-secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.1); }
+.btn-secondary:active:not(:disabled) { transform: scale(0.96); }
 
 .btn-danger {
   background: transparent;
@@ -439,12 +452,14 @@ body {
   border: 1px solid var(--danger);
 }
 .btn-danger:hover:not(:disabled) { background: rgba(239,68,68,0.1); }
+.btn-danger:active:not(:disabled) { transform: scale(0.96); }
 
 .btn-ghost {
   background: transparent;
   color: var(--text-secondary);
 }
-.btn-ghost:hover:not(:disabled) { background: var(--bg-card); color: var(--text-primary); }
+.btn-ghost:hover:not(:disabled) { background: rgba(255, 255, 255, 0.05); color: var(--text-primary); }
+.btn-ghost:active:not(:disabled) { transform: scale(0.96); }
 
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 .btn-lg { padding: 12px 24px; font-size: 15px; }

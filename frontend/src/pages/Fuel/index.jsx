@@ -112,7 +112,7 @@ export default function Fuel() {
       />
 
       <div className="tabs">
-        {[['fuel',`<FaGasPump /> Fuel Purchases (${fuel.length})`], ['miles',`<FaRoad /> Miles by State (${miles.length})`], ['ifta','<FaChartBar /> IFTA Report']].map(([t,l]) => (
+        {[['fuel', <><FaGasPump /> Fuel Purchases ({fuel.length})</>], ['miles', <><FaRoad /> Miles by State ({miles.length})</>], ['ifta', <><FaChartBar /> IFTA Report</>]].map(([t,l]) => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{l}</button>
         ))}
       </div>
