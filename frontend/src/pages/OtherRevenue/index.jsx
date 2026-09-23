@@ -1,3 +1,4 @@
+import { FaTrash, FaEdit, FaMoneyBillWave } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../api/client';
 import { Spinner, EmptyState, PageHeader, Modal, formatCurrency, formatDate, ConfirmModal } from '../../components/ui';
@@ -63,7 +64,7 @@ export default function OtherRevenue() {
             <table className="data-table">
               <thead><tr><th>Date</th><th>Description</th><th>Notes</th><th>Amount</th><th>Actions</th></tr></thead>
               <tbody>
-                {items.length === 0 ? <tr><td colSpan={5}><EmptyState icon="💵" title="No other revenue recorded" /></td></tr>
+                {items.length === 0 ? <tr><td colSpan={5}><EmptyState icon={<FaMoneyBillWave />} title="No other revenue recorded" /></td></tr>
                   : items.map(item => (
                   <tr key={item.id}>
                     <td className="muted">{formatDate(item.revenue_date)}</td>
@@ -72,8 +73,8 @@ export default function OtherRevenue() {
                     <td style={{ fontWeight:700, color:'var(--success)' }}>{formatCurrency(item.amount)}</td>
                     <td>
                       <div className="flex gap-8">
-                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(item)}>✏️</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(item)}>🗑</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(item)}><FaEdit /></button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(item)}><FaTrash /></button>
                       </div>
                     </td>
                   </tr>

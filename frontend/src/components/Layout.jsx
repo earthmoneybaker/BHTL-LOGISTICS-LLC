@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { FaCrown } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from './Sidebar';
@@ -21,7 +22,15 @@ const PAGE_TITLES = {
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem('bhtl_theme') || 'dark');
   const { user } = useAuth();
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('bhtl_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(t => (t === 'dark' ? 'light' : 'dark'));
   const location = useLocation();
 
   const title = Object.entries(PAGE_TITLES).find(([path]) =>
@@ -50,10 +59,19 @@ export default function Layout({ children }) {
 
           <div className="topbar-spacer" />
 
+          <button
+            className="btn btn-ghost btn-icon"
+            onClick={toggleTheme}
+            aria-label="Toggle light/dark mode"
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+
           <div className="topbar-user">
             <div>
               <div className="topbar-user-name">{user?.name || user?.full_name}</div>
-              <div className="topbar-user-role">{user?.role === 'admin' ? '👑 Admin' : 'Office Staff'}</div>
+              <div className="topbar-user-role">{user?.role === 'admin' ? '<FaCrown /> Admin' : 'Office Staff'}</div>
             </div>
             <div className="topbar-avatar">{initials}</div>
           </div>

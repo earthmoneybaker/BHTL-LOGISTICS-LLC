@@ -1,3 +1,4 @@
+import { FaTruck, FaExclamationTriangle } from 'react-icons/fa';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -28,7 +29,7 @@ export default function Login() {
     <div className="login-page">
       <div className="login-card">
         <div className="login-logo">
-          <div className="name">🚛 BHTL Logistics</div>
+          <div className="name"><FaTruck /> BHTL Logistics</div>
           <div className="tagline">Safety · Reliability · On Time</div>
           <div className="subtitle">Office Management System — Dayton, Ohio</div>
         </div>
@@ -36,7 +37,7 @@ export default function Login() {
         <form onSubmit={handleSubmit}>
           {error && (
             <div className="alert alert-danger" style={{ marginBottom: '16px' }}>
-              ⚠️ {error}
+              <FaExclamationTriangle /> {error}
             </div>
           )}
 

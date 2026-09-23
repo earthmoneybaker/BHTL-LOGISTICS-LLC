@@ -1,3 +1,4 @@
+import { FaTruck, FaCheck, FaExclamationTriangle, FaFileAlt, FaBox, FaDollarSign, FaBell } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client';
@@ -81,14 +82,14 @@ export default function Dashboard() {
       {/* KPI Stats */}
       <div className="stat-grid mb-24">
         <div className="stat-card" style={{ '--accent': '#3B82F6' }}>
-          <div className="stat-icon">📦</div>
+          <div className="stat-icon"><FaBox /></div>
           <div className="stat-label">Active Loads</div>
           <div className="stat-value">{totalActiveLoads}</div>
           <div className="stat-sub">Not yet paid</div>
         </div>
 
         <div className="stat-card" style={{ '--accent': '#10B981' }}>
-          <div className="stat-icon">🚛</div>
+          <div className="stat-icon"><FaTruck /></div>
           <div className="stat-label">Trucks Active</div>
           <div className="stat-value">{data.truck_status?.active || 0}</div>
           <div className="stat-sub">
@@ -97,7 +98,7 @@ export default function Dashboard() {
         </div>
 
         <div className="stat-card" style={{ '--accent': '#F59E0B' }}>
-          <div className="stat-icon">📄</div>
+          <div className="stat-icon"><FaFileAlt /></div>
           <div className="stat-label">Unpaid Invoices</div>
           <div className="stat-value">
             {formatCurrency(data.invoice_summary?.unpaid_amount)}
@@ -106,7 +107,7 @@ export default function Dashboard() {
         </div>
 
         <div className="stat-card" style={{ '--accent': '#EF4444' }}>
-          <div className="stat-icon">⚠️</div>
+          <div className="stat-icon"><FaExclamationTriangle /></div>
           <div className="stat-label">Overdue Invoices</div>
           <div className="stat-value" style={{ color: 'var(--danger)' }}>
             {formatCurrency(data.invoice_summary?.overdue_amount)}
@@ -117,7 +118,7 @@ export default function Dashboard() {
         {isAdmin && (
           <>
             <div className="stat-card" style={{ '--accent': '#059669' }}>
-              <div className="stat-icon">💰</div>
+              <div className="stat-icon"><FaDollarSign /></div>
               <div className="stat-label">Revenue This Month</div>
               <div className="stat-value">{formatCurrency(data.revenue?.this_month)}</div>
               <div className="stat-sub">
@@ -126,7 +127,7 @@ export default function Dashboard() {
             </div>
 
             <div className="stat-card" style={{ '--accent': '#8B5CF6' }}>
-              <div className="stat-icon">🔔</div>
+              <div className="stat-icon"><FaBell /></div>
               <div className="stat-label">Expiration Alerts</div>
               <div className="stat-value" style={{ color: expirationsDanger.length > 0 ? 'var(--danger)' : 'var(--success)' }}>
                 {expirationsDanger.length}
@@ -232,7 +233,7 @@ export default function Dashboard() {
           </div>
           {data.expirations.length === 0 ? (
             <div className="empty-state" style={{ padding: '30px' }}>
-              <div style={{ fontSize: '32px' }}>✅</div>
+              <div style={{ fontSize: '32px' }}><FaCheck /></div>
               <div className="empty-state-title">All clear — no expirations within 90 days</div>
             </div>
           ) : (

@@ -1,3 +1,4 @@
+import { FaTractor, FaTrash, FaTruck, FaExclamationTriangle, FaClipboardList, FaFileAlt, FaCreditCard, FaMapMarkerAlt, FaFlagCheckered, FaUser } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api, { downloadFile } from '../../api/client';
@@ -33,7 +34,7 @@ export default function LoadDetail() {
       if (status === 'paid') {
         if (res.data.invoiceCreated) toast.success('Marked paid — added to revenue');
         else if (res.data.hasInvoice) toast.success('Marked paid');
-        else toast('Marked paid, but no customer/rate set — revenue not recorded. Edit the load to add them.', { icon: '⚠️' });
+        else toast('Marked paid, but no customer/rate set — revenue not recorded. Edit the load to add them.', { icon: <FaExclamationTriangle /> });
       } else {
         toast.success(`Status → ${status}`);
       }
@@ -111,7 +112,7 @@ export default function LoadDetail() {
                 onClick={() => handleStatusChange(s)}
                 style={{ cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}
               >
-                {i < currentStepIdx ? '✓ ' : ''}{s.replace(/_/g,' ')}
+                {i < currentStepIdx ? <FaCheck /> : ''}{s.replace(/_/g,' ')}
               </button>
               {i < STATUS_ORDER.length - 1 && <span className="pipeline-arrow">›</span>}
             </div>
@@ -123,7 +124,7 @@ export default function LoadDetail() {
       <div className="tabs">
         {['details', 'documents', 'expenses'].map(t => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>
-            {t === 'details' ? '📋 Details' : t === 'documents' ? `📄 Documents (${documents.length})` : `💳 Expenses (${expenses.length})`}
+            {t === 'details' ? '<FaClipboardList /> Details' : t === 'documents' ? `<FaFileAlt /> Documents (${documents.length})` : `<FaCreditCard /> Expenses (${expenses.length})`}
           </button>
         ))}
       </div>
@@ -150,12 +151,12 @@ export default function LoadDetail() {
             <div className="detail-section-title">Route</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               <div className="detail-field">
-                <div className="detail-field-label">📍 Origin</div>
+                <div className="detail-field-label"><FaMapMarkerAlt /> Origin</div>
                 <div className="detail-field-value">{[load.origin_address, load.origin_city, load.origin_state].filter(Boolean).join(', ')}</div>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Pickup: {formatDate(load.pickup_date)} {load.pickup_time}</div>
               </div>
               <div className="detail-field">
-                <div className="detail-field-label">🏁 Destination</div>
+                <div className="detail-field-label"><FaFlagCheckered /> Destination</div>
                 <div className="detail-field-value">{[load.destination_address, load.destination_city, load.destination_state].filter(Boolean).join(', ')}</div>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Delivery: {formatDate(load.delivery_date)} {load.delivery_time}</div>
               </div>
@@ -166,9 +167,9 @@ export default function LoadDetail() {
             <div className="card mb-16">
               <div className="detail-section-title">Assignment</div>
               {[
-                ['🚛 Truck', load.truck_unit || '—'],
-                ['🚜 Trailer', load.trailer_unit || '—'],
-                ['👤 Driver', load.driver_first ? `${load.driver_first} ${load.driver_last}` : '—'],
+                ['<FaTruck /> Truck', load.truck_unit || '—'],
+                ['<FaTractor /> Trailer', load.trailer_unit || '—'],
+                ['<FaUser /> Driver', load.driver_first ? `${load.driver_first} ${load.driver_last}` : '—'],
                 ['📞 Driver Phone', load.driver_phone || '—'],
               ].map(([l, v]) => (
                 <div key={l} className="detail-field">
@@ -228,7 +229,7 @@ export default function LoadDetail() {
                       <td>
                         <div className="flex gap-8">
                           <button className="btn btn-secondary btn-sm" onClick={() => downloadFile(`/documents/${doc.id}/download`, doc.file_name || 'document')}>⬇ Download</button>
-                          <button className="btn btn-danger btn-sm" onClick={() => handleDeleteDoc(doc.id)}>🗑</button>
+                          <button className="btn btn-danger btn-sm" onClick={() => handleDeleteDoc(doc.id)}><FaTrash /></button>
                         </div>
                       </td>
                     </tr>

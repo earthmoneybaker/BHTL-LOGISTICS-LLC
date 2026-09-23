@@ -1,32 +1,33 @@
+import { FaTruck, FaGasPump, FaChartBar, FaClipboardList, FaFileAlt, FaCreditCard, FaBox, FaMoneyBillWave, FaChartLine, FaDollarSign, FaUsers, FaCar, FaHandshake, FaCog } from 'react-icons/fa';
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const NAV_ITEMS = [
   { section: 'OVERVIEW', items: [
-    { to: '/', label: 'Dashboard', icon: '📊' },
+    { to: '/', label: 'Dashboard', icon: <FaChartBar /> },
   ]},
   { section: 'OPERATIONS', items: [
-    { to: '/loads', label: 'Load Management', icon: '📦' },
-    { to: '/extract-load', label: 'Extract from Document', icon: '📄' },
-    { to: '/customers', label: 'Customers', icon: '🤝' },
-    { to: '/drivers', label: 'Drivers', icon: '🚗' },
-    { to: '/fleet', label: 'Fleet', icon: '🚛' },
+    { to: '/loads', label: 'Load Management', icon: <FaBox /> },
+    { to: '/extract-load', label: 'Extract from Document', icon: <FaFileAlt /> },
+    { to: '/customers', label: 'Customers', icon: <FaHandshake /> },
+    { to: '/drivers', label: 'Drivers', icon: <FaCar /> },
+    { to: '/fleet', label: 'Fleet', icon: <FaTruck /> },
   ]},
   { section: 'COMPLIANCE', items: [
-    { to: '/compliance', label: 'Documents & Compliance', icon: '📋' },
+    { to: '/compliance', label: 'Documents & Compliance', icon: <FaClipboardList /> },
   ]},
   { section: 'FINANCE', items: [
-    { to: '/billing', label: 'Billing & Invoices', icon: '💰' },
-    { to: '/other-revenue', label: 'Other Revenue', icon: '💵' },
-    { to: '/expenses', label: 'Expenses', icon: '💳' },
-    { to: '/payroll', label: 'Payroll', icon: '💵' },
-    { to: '/pnl', label: 'Profit & Loss', icon: '📈', adminOnly: true },
-    { to: '/fuel', label: 'Fuel & IFTA', icon: '⛽' },
+    { to: '/billing', label: 'Billing & Invoices', icon: <FaDollarSign /> },
+    { to: '/other-revenue', label: 'Other Revenue', icon: <FaMoneyBillWave /> },
+    { to: '/expenses', label: 'Expenses', icon: <FaCreditCard /> },
+    { to: '/payroll', label: 'Payroll', icon: <FaMoneyBillWave /> },
+    { to: '/pnl', label: 'Profit & Loss', icon: <FaChartLine />, adminOnly: true },
+    { to: '/fuel', label: 'Fuel & IFTA', icon: <FaGasPump /> },
   ]},
   { section: 'ADMIN', items: [
-    { to: '/users', label: 'User Management', icon: '👥', adminOnly: true },
-    { to: '/settings', label: 'Settings', icon: '⚙️', adminOnly: true },
+    { to: '/users', label: 'User Management', icon: <FaUsers />, adminOnly: true },
+    { to: '/settings', label: 'Settings', icon: <FaCog />, adminOnly: true },
     { to: '/import', label: 'Bulk Import', icon: '📥', adminOnly: true },
   ]},
 ];

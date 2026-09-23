@@ -1,3 +1,4 @@
+import { FaEdit, FaUser, FaUsers, FaCrown } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { Spinner, EmptyState, PageHeader, Modal, ConfirmModal } from '../../components/ui';
@@ -59,21 +60,21 @@ export default function Users() {
             <table className="data-table">
               <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
               <tbody>
-                {users.length === 0 ? <tr><td colSpan={6}><EmptyState icon="👥" title="No users" /></td></tr>
+                {users.length === 0 ? <tr><td colSpan={6}><EmptyState icon={<FaUsers />} title="No users" /></td></tr>
                   : users.map(u => (
                   <tr key={u.id}>
                     <td style={{ fontWeight:600 }}>{u.full_name} {u.id === me?.id ? <span style={{ fontSize:'10px', color:'var(--brand-orange)', fontWeight:700 }}>(you)</span> : ''}</td>
                     <td className="muted">{u.email}</td>
                     <td>
                       <span className={`badge ${u.role === 'admin' ? 'badge-paid' : 'badge-invoiced'}`}>
-                        {u.role === 'admin' ? '👑 Admin' : '👤 Staff'}
+                        {u.role === 'admin' ? '<FaCrown /> Admin' : '<FaUser /> Staff'}
                       </span>
                     </td>
                     <td><span className={`badge ${u.is_active ? 'badge-active' : 'badge-inactive'}`}>{u.is_active ? 'Active' : 'Inactive'}</span></td>
                     <td className="muted">{new Date(u.created_at).toLocaleDateString()}</td>
                     <td>
                       <div className="flex gap-8">
-                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(u)}>✏️ Edit</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(u)}><FaEdit /> Edit</button>
                         {u.id !== me?.id && (
                           <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(u)}>Deactivate</button>
                         )}

@@ -1,3 +1,4 @@
+import { FaEdit, FaChartBar, FaFileAlt } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../api/client';
 import { downloadFile } from '../../api/client';
@@ -72,7 +73,7 @@ export default function Billing() {
       <PageHeader title="Billing & Invoices" subtitle={`${invoices.length} invoices — ${formatCurrency(totalUnpaid)} outstanding`} />
 
       <div className="tabs">
-        {[['invoices','📄 All Invoices'], ['aging','📊 Aging Report']].map(([t,l]) => (
+        {[['invoices','<FaFileAlt /> All Invoices'], ['aging','<FaChartBar /> Aging Report']].map(([t,l]) => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{l}</button>
         ))}
       </div>
@@ -97,7 +98,7 @@ export default function Billing() {
                 <table className="data-table">
                   <thead><tr><th>Invoice #</th><th>Customer</th><th>Load #</th><th>Amount</th><th>Issued</th><th>Due</th><th>Days Overdue</th><th>Status</th><th>Actions</th></tr></thead>
                   <tbody>
-                    {invoices.length === 0 ? <tr><td colSpan={9}><EmptyState icon="📄" title="No invoices" description="Generate invoices from delivered loads." /></td></tr>
+                    {invoices.length === 0 ? <tr><td colSpan={9}><EmptyState icon={<FaFileAlt />} title="No invoices" description="Generate invoices from delivered loads." /></td></tr>
                       : invoices.map(inv => (
                       <tr key={inv.id}>
                         <td className="mono" style={{ fontWeight:700 }}>{inv.invoice_number}</td>
@@ -112,7 +113,7 @@ export default function Billing() {
                         <td><span className={`badge badge-${inv.status}`}>{inv.status}</span></td>
                         <td>
                           <div className="flex gap-8">
-                            <button className="btn btn-secondary btn-sm" onClick={() => openEdit(inv)}>✏️</button>
+                            <button className="btn btn-secondary btn-sm" onClick={() => openEdit(inv)}><FaEdit /></button>
                             <button className="btn btn-secondary btn-sm" onClick={() => downloadPdf(inv.id)}>📥 PDF</button>
                             {inv.status !== 'voided' && (
                               <button className="btn btn-danger btn-sm" onClick={() => handleVoid(inv)}>Void</button>

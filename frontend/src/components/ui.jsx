@@ -1,3 +1,4 @@
+import { FaInbox } from 'react-icons/fa';
 // Status badge for loads, invoices, trucks, etc.
 export function StatusBadge({ status }) {
   if (!status) return null;
@@ -58,7 +59,7 @@ export function Spinner() {
 }
 
 // Empty state
-export function EmptyState({ icon = '📭', title = 'No data found', description = '', action }) {
+export function EmptyState({ icon = <FaInbox />, title = 'No data found', description = '', action }) {
   return (
     <div className="empty-state">
       <div className="empty-state-icon">{icon}</div>

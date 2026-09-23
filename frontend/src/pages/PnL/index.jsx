@@ -1,3 +1,4 @@
+import { FaChartBar, FaCreditCard, FaMoneyBillWave, FaSearch, FaChartLine, FaDollarSign, FaChartArea } from 'react-icons/fa';
 import { categoryLabel } from '../../utils/expenseCategories';
 import { useState, useEffect } from 'react';
 import api, { downloadFile } from '../../api/client';
@@ -88,7 +89,7 @@ export default function PnL() {
       </div>
 
       <div className="tabs">
-        {[['summary','📊 Summary'],['breakdown','🔍 Breakdown'],['trend','📈 12-Month Trend']].map(([t,l]) => (
+        {[['summary','<FaChartBar /> Summary'],['breakdown','<FaSearch /> Breakdown'],['trend','<FaChartLine /> 12-Month Trend']].map(([t,l]) => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{l}</button>
         ))}
       </div>
@@ -99,23 +100,23 @@ export default function PnL() {
             <div>
               <div className="stat-grid mb-20">
                 <div className="stat-card" style={{ '--accent':'var(--success)' }}>
-                  <div className="stat-icon">💰</div>
+                  <div className="stat-icon"><FaDollarSign /></div>
                   <div className="stat-label">Total Revenue</div>
                   <div className="stat-value" style={{ fontSize:'22px' }}>{formatCurrency(data.summary.revenue)}</div>
                   <div className="stat-sub">Invoiced in period</div>
                 </div>
                 <div className="stat-card" style={{ '--accent':'var(--danger)' }}>
-                  <div className="stat-icon">💳</div>
+                  <div className="stat-icon"><FaCreditCard /></div>
                   <div className="stat-label">Total Expenses</div>
                   <div className="stat-value" style={{ fontSize:'22px', color:'var(--danger)' }}>{formatCurrency(data.summary.expenses)}</div>
                 </div>
                 <div className="stat-card" style={{ '--accent':'var(--warning)' }}>
-                  <div className="stat-icon">💵</div>
+                  <div className="stat-icon"><FaMoneyBillWave /></div>
                   <div className="stat-label">Total Payroll</div>
                   <div className="stat-value" style={{ fontSize:'22px', color:'var(--warning)' }}>{formatCurrency(data.summary.payroll)}</div>
                 </div>
                 <div className="stat-card" style={{ '--accent': data.summary.net_profit >= 0 ? 'var(--success)' : 'var(--danger)' }}>
-                  <div className="stat-icon">{data.summary.net_profit >= 0 ? '📈' : '📉'}</div>
+                  <div className="stat-icon">{data.summary.net_profit >= 0 ? <FaChartLine /> : <FaChartArea />}</div>
                   <div className="stat-label">Net Profit / Loss</div>
                   <div className="stat-value" style={{ fontSize:'22px', color: data.summary.net_profit >= 0 ? 'var(--success)' : 'var(--danger)' }}>
                     {formatCurrency(data.summary.net_profit)}

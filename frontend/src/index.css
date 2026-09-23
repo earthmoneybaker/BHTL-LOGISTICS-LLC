@@ -1,36 +1,36 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* =====================================================================
-   BHTL Logistics — Design System
-   Colors: Deep Navy #0A1628 | Brand Blue #1E3A8A | Orange Accent #F97316
+   BHTL Logistics — Design System (Refreshed)
+   Colors: Deep Navy-Black | Electric Blue | Warm Amber-Orange
    ===================================================================== */
 
 :root {
   /* Colors */
-  --bg-primary: #0A1628;
-  --bg-secondary: #0F1F3D;
-  --bg-card: #162040;
-  --bg-card-hover: #1a2a52;
-  --bg-sidebar: #0d1a35;
-  --border-color: #1e3060;
-  --border-subtle: #162545;
+  --bg-primary: #070E1C;
+  --bg-secondary: #0B1830;
+  --bg-card: #101B36;
+  --bg-card-hover: #16233F;
+  --bg-sidebar: #060D1A;
+  --border-color: #1D2C4D;
+  --border-subtle: #131F3B;
 
   --brand-blue: #1E3A8A;
-  --brand-blue-light: #2563EB;
-  --brand-blue-glow: rgba(37, 99, 235, 0.2);
-  --brand-orange: #F97316;
-  --brand-orange-light: #FB923C;
-  --brand-orange-glow: rgba(249, 115, 22, 0.2);
+  --brand-blue-light: #3B82F6;
+  --brand-blue-glow: rgba(59, 130, 246, 0.18);
+  --brand-orange: #FB7B12;
+  --brand-orange-light: #FDBA74;
+  --brand-orange-glow: rgba(251, 123, 18, 0.15);
 
-  --text-primary: #F1F5F9;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --text-inverse: #0A1628;
+  --text-primary: #F8FAFC;
+  --text-secondary: #A3B3CC;
+  --text-muted: #6B7A99;
+  --text-inverse: #070E1C;
 
   /* Status colors */
   --status-booked: #3B82F6;
   --status-dispatched: #8B5CF6;
-  --status-in_transit: #F97316;
+  --status-in_transit: #FB7B12;
   --status-delivered: #10B981;
   --status-invoiced: #F59E0B;
   --status-paid: #059669;
@@ -51,8 +51,8 @@
   --radius-lg: 16px;
 
   /* Shadows */
-  --shadow-card: 0 4px 24px rgba(0,0,0,0.35);
-  --shadow-modal: 0 20px 60px rgba(0,0,0,0.6);
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-modal: 0 20px 60px rgba(0,0,0,0.65);
 
   /* Transitions */
   --transition: all 0.2s ease;
@@ -64,7 +64,12 @@ html { font-size: 16px; scroll-behavior: smooth; }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
+  background-image:
+    radial-gradient(circle at 12% -8%, rgba(59,130,246,0.10) 0%, transparent 45%),
+    radial-gradient(circle at 92% 8%, rgba(251,123,18,0.05) 0%, transparent 40%),
+    radial-gradient(circle at 50% 110%, rgba(59,130,246,0.06) 0%, transparent 50%);
+  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.5;
   min-height: 100vh;
@@ -125,6 +130,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  background: linear-gradient(180deg, rgba(59,130,246,0.06), transparent);
 }
 
 .sidebar-logo .company-name {
@@ -182,7 +188,7 @@ body {
 }
 
 .nav-item.active {
-  background: var(--brand-blue-glow);
+  background: linear-gradient(90deg, rgba(59,130,246,0.18), transparent);
   color: var(--brand-blue-light);
   border-left-color: var(--brand-blue-light);
   font-weight: 600;
@@ -245,13 +251,14 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--brand-blue);
+  background: linear-gradient(135deg, var(--brand-blue-light), var(--brand-blue));
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
   color: white;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.3);
 }
 
 .topbar-user-name {
@@ -279,11 +286,12 @@ body {
    CARDS
    ===================== */
 .card {
-  background: var(--bg-card);
+  background: linear-gradient(180deg, rgba(255,255,255,0.025), transparent 40%), var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 24px;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: border-color 0.2s ease;
 }
 
 .card-sm { padding: 16px; border-radius: var(--radius-md); }
@@ -318,7 +326,7 @@ body {
 }
 
 .stat-card {
-  background: var(--bg-card);
+  background: linear-gradient(180deg, rgba(255,255,255,0.025), transparent 40%), var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 20px;
@@ -330,7 +338,7 @@ body {
 .stat-card:hover {
   border-color: var(--brand-blue-light);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  box-shadow: 0 10px 32px rgba(59,130,246,0.15);
 }
 
 .stat-card::before {
@@ -340,7 +348,7 @@ body {
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--accent, var(--brand-blue-light));
+  background: linear-gradient(90deg, var(--accent, var(--brand-blue-light)), transparent);
 }
 
 .stat-label {
@@ -397,16 +405,26 @@ body {
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-primary {
-  background: var(--brand-blue-light);
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
   color: white;
+  box-shadow: 0 2px 10px rgba(59,130,246,0.25);
 }
-.btn-primary:hover:not(:disabled) { background: #1D4ED8; }
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  box-shadow: 0 4px 16px rgba(59,130,246,0.35);
+  transform: translateY(-1px);
+}
 
 .btn-orange {
-  background: var(--brand-orange);
+  background: linear-gradient(135deg, #FB7B12, #EA6A05);
   color: white;
+  box-shadow: 0 2px 10px rgba(251,123,18,0.25);
 }
-.btn-orange:hover:not(:disabled) { background: var(--brand-orange-light); }
+.btn-orange:hover:not(:disabled) {
+  background: linear-gradient(135deg, #FDBA74, #FB7B12);
+  box-shadow: 0 4px 16px rgba(251,123,18,0.35);
+  transform: translateY(-1px);
+}
 
 .btn-secondary {
   background: var(--bg-card);
@@ -556,11 +574,12 @@ table.data-table {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
 .badge-booked { background: rgba(59,130,246,0.15); color: var(--status-booked); }
 .badge-dispatched { background: rgba(139,92,246,0.15); color: var(--status-dispatched); }
-.badge-in_transit { background: rgba(249,115,22,0.15); color: var(--status-in_transit); }
+.badge-in_transit { background: rgba(251,123,18,0.15); color: var(--status-in_transit); }
 .badge-delivered { background: rgba(16,185,129,0.15); color: var(--status-delivered); }
 .badge-invoiced { background: rgba(245,158,11,0.15); color: var(--status-invoiced); }
 .badge-paid { background: rgba(5,150,105,0.15); color: var(--status-paid); }
@@ -597,7 +616,7 @@ table.data-table {
 }
 
 .modal {
-  background: var(--bg-card);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent 30%), var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-modal);
@@ -838,7 +857,7 @@ table.data-table {
 }
 
 .pipeline-step.active {
-  background: var(--brand-blue-light);
+  background: linear-gradient(135deg, var(--brand-blue-light), var(--brand-blue));
   color: white;
   border-color: var(--brand-blue-light);
 }
@@ -929,14 +948,14 @@ table.data-table {
   align-items: center;
   justify-content: center;
   background: var(--bg-primary);
-  background-image: 
-    radial-gradient(ellipse at 30% 0%, rgba(30,58,138,0.25) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 100%, rgba(249,115,22,0.12) 0%, transparent 50%);
+  background-image:
+    radial-gradient(ellipse at 25% 0%, rgba(59,130,246,0.22) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 100%, rgba(251,123,18,0.12) 0%, transparent 50%);
   padding: 20px;
 }
 
 .login-card {
-  background: var(--bg-card);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent 40%), var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 40px;
@@ -1056,39 +1075,39 @@ table.data-table {
 
 @media (max-width: 768px) {
   :root { --sidebar-width: 0px; }
-  
+
   .sidebar {
     transform: translateX(-260px);
     width: 260px;
   }
-  
+
   .sidebar.open {
     transform: translateX(0);
   }
-  
+
   .main-content { margin-left: 0; }
-  
+
   .topbar {
     left: 0;
     padding: 0 16px;
   }
-  
+
   .mobile-menu-btn { display: flex; }
-  
+
   .page-content { padding: 20px 16px; }
-  
+
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
-  
+
   .stat-grid { grid-template-columns: 1fr 1fr; }
-  
+
   .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
-  
+
   .filter-bar { flex-direction: column; align-items: stretch; }
   .search-input { min-width: 0; }
-  
+
   .modal { max-width: 100%; }
   .modal-xl, .modal-lg { max-width: 100%; }
-  
+
   .page-header { flex-direction: column; align-items: flex-start; }
 }
 
@@ -1135,3 +1154,80 @@ table.data-table {
 .no-data { color: var(--text-muted); font-size: 13px; font-style: italic; }
 .green { color: var(--success); }
 .red { color: var(--danger); }
+
+/* =====================================================================
+   LIGHT THEME (soft, warm off-white — easier on the eyes than stark white)
+   ===================================================================== */
+:root[data-theme="light"] {
+  --bg-primary: #EEECE7;
+  --bg-secondary: #E4E1DA;
+  --bg-card: #F7F5F1;
+  --bg-card-hover: #EFEDE7;
+  --bg-sidebar: #F2F0EB;
+  --border-color: #D8D4CB;
+  --border-subtle: #E2DFD7;
+
+  --brand-blue: #1E3A8A;
+  --brand-blue-light: #2563EB;
+  --brand-blue-glow: rgba(37, 99, 235, 0.10);
+  --brand-orange: #C2570A;
+  --brand-orange-light: #EA6A05;
+  --brand-orange-glow: rgba(194, 87, 10, 0.08);
+
+  --text-primary: #26241E;
+  --text-secondary: #5C5A50;
+  --text-muted: #948F81;
+  --text-inverse: #F7F5F1;
+
+  --shadow-card: 0 2px 14px rgba(38,36,30,0.07);
+  --shadow-modal: 0 20px 50px rgba(38,36,30,0.16);
+}
+
+:root[data-theme="light"] body {
+  background-image:
+    radial-gradient(circle at 12% -8%, rgba(37,99,235,0.05) 0%, transparent 45%),
+    radial-gradient(circle at 92% 8%, rgba(194,87,10,0.04) 0%, transparent 40%),
+    radial-gradient(circle at 50% 110%, rgba(37,99,235,0.03) 0%, transparent 50%);
+}
+
+:root[data-theme="light"] .sidebar {
+  border-right: 1px solid var(--border-color);
+  box-shadow: 1px 0 12px rgba(38,36,30,0.04);
+}
+
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .stat-card,
+:root[data-theme="light"] .modal,
+:root[data-theme="light"] .login-card {
+  background: var(--bg-card);
+}
+
+:root[data-theme="light"] .data-table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+
+:root[data-theme="light"] .form-control,
+:root[data-theme="light"] .search-input,
+:root[data-theme="light"] .filter-select {
+  background: var(--bg-card);
+}
+
+:root[data-theme="light"] .badge {
+  border: 1px solid rgba(38,36,30,0.07);
+}
+
+:root[data-theme="light"] .alert-danger { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.25); color: #B91C1C; }
+:root[data-theme="light"] .alert-warning { background: rgba(245,158,11,0.10); border-color: rgba(245,158,11,0.3); color: #92400E; }
+:root[data-theme="light"] .alert-success { background: rgba(16,185,129,0.10); border-color: rgba(16,185,129,0.3); color: #065F46; }
+:root[data-theme="light"] .alert-info { background: rgba(59,130,246,0.10); border-color: rgba(59,130,246,0.3); color: #1E40AF; }
+
+:root[data-theme="light"] .login-page {
+  background-image:
+    radial-gradient(ellipse at 25% 0%, rgba(37,99,235,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 100%, rgba(194,87,10,0.05) 0%, transparent 50%);
+}
+
+:root[data-theme="light"] .spinner {
+  border-color: var(--border-color);
+  border-top-color: var(--brand-blue-light);
+}

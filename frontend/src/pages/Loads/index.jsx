@@ -1,3 +1,4 @@
+import { FaTrash, FaWrench, FaEdit, FaExclamationTriangle, FaMapMarkerAlt, FaFlagCheckered, FaBox } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/client';
@@ -83,7 +84,7 @@ export default function Loads() {
       if (status === 'paid') {
         if (res.data.invoiceCreated) toast.success('Marked paid — added to revenue');
         else if (res.data.hasInvoice) toast.success('Marked paid');
-        else toast('Marked paid, but no customer/rate set — revenue not recorded', { icon: '⚠️' });
+        else toast('Marked paid, but no customer/rate set — revenue not recorded', { icon: <FaExclamationTriangle /> });
       } else {
         toast.success(`Status updated to ${status}`);
       }
@@ -126,7 +127,7 @@ export default function Loads() {
         actions={
           <div className="flex gap-8">
             <button className="btn btn-secondary" onClick={handleBackfill} disabled={backfilling}>
-              {backfilling ? 'Fixing...' : '🔧 Fix Historical Revenue'}
+              {backfilling ? 'Fixing...' : '<FaWrench /> Fix Historical Revenue'}
             </button>
             <button className="btn btn-primary" onClick={openCreate}>+ New Load</button>
           </div>
@@ -170,7 +171,7 @@ export default function Loads() {
               </thead>
               <tbody>
                 {loads.length === 0 ? (
-                  <tr><td colSpan={10}><EmptyState icon="📦" title="No loads found" description="Create your first load to get started." /></td></tr>
+                  <tr><td colSpan={10}><EmptyState icon={<FaBox />} title="No loads found" description="Create your first load to get started." /></td></tr>
                 ) : loads.map(load => (
                   <tr key={load.id}>
                     <td className="mono">
@@ -201,9 +202,9 @@ export default function Loads() {
                     </td>
                     <td>
                       <div className="flex gap-8">
-                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(load)}>✏️</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(load)}><FaEdit /></button>
                         <Link to={`/loads/${load.id}`} className="btn btn-ghost btn-sm">👁</Link>
-                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(load)}>🗑</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(load)}><FaTrash /></button>
                       </div>
                     </td>
                   </tr>
@@ -285,7 +286,7 @@ export default function Loads() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '16px' }}>
               <div>
-                <div className="detail-section-title">📍 Origin</div>
+                <div className="detail-section-title"><FaMapMarkerAlt /> Origin</div>
                 <div className="form-group">
                   <label className="form-label">Address</label>
                   <input className="form-control" value={form.origin_address} onChange={f('origin_address')} />
@@ -317,7 +318,7 @@ export default function Loads() {
               </div>
 
               <div>
-                <div className="detail-section-title">🏁 Destination</div>
+                <div className="detail-section-title"><FaFlagCheckered /> Destination</div>
                 <div className="form-group">
                   <label className="form-label">Address</label>
                   <input className="form-control" value={form.destination_address} onChange={f('destination_address')} />

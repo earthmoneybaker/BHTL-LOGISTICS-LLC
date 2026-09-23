@@ -1,3 +1,4 @@
+import { FaTrash, FaEdit, FaMoneyBillWave, FaCalculator } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../api/client';
 import { Spinner, EmptyState, PageHeader, Modal, formatCurrency, formatDate } from '../../components/ui';
@@ -97,7 +98,7 @@ export default function Payroll() {
             <table className="data-table">
               <thead><tr><th>Person</th><th>Period</th><th>Pay Type</th><th>Gross Pay</th><th>Deductions</th><th>Net Pay</th><th>Status</th><th>Actions</th></tr></thead>
               <tbody>
-                {records.length === 0 ? <tr><td colSpan={8}><EmptyState icon="💵" title="No payroll records" /></td></tr>
+                {records.length === 0 ? <tr><td colSpan={8}><EmptyState icon={<FaMoneyBillWave />} title="No payroll records" /></td></tr>
                   : records.map(r => (
                   <tr key={r.id}>
                     <td style={{ fontWeight:600 }}>{r.first_name ? `${r.first_name} ${r.last_name}` : r.staff_name || '—'}</td>
@@ -109,8 +110,8 @@ export default function Payroll() {
                     <td><span className={`badge badge-${r.status}`}>{r.status}</span></td>
                     <td>
                       <div className="flex gap-8">
-                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(r)}>✏️</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(r.id)}>🗑</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(r)}><FaEdit /></button>
+                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(r.id)}><FaTrash /></button>
                       </div>
                     </td>
                   </tr>
@@ -147,7 +148,7 @@ export default function Payroll() {
           {form.person_type === 'driver' && form.driver_id && (
             <div style={{ marginBottom:'16px' }}>
               <button type="button" className="btn btn-secondary" onClick={calculatePay} disabled={calculating}>
-                {calculating ? 'Calculating...' : '🔢 Auto-Calculate from Completed Loads'}
+                {calculating ? 'Calculating...' : '<FaCalculator /> Auto-Calculate from Completed Loads'}
               </button>
             </div>
           )}

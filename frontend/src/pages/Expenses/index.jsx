@@ -1,3 +1,4 @@
+import { FaTrash, FaEdit, FaCreditCard } from 'react-icons/fa';
 import { EXPENSE_CATEGORIES, categoryLabel } from '../../utils/expenseCategories';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
@@ -104,7 +105,7 @@ export default function Expenses() {
             <table className="data-table">
               <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Vendor</th><th>Truck</th><th>Driver</th><th>Amount</th><th>Actions</th></tr></thead>
               <tbody>
-                {expenses.length === 0 ? <tr><td colSpan={8}><EmptyState icon="💳" title="No expenses" /></td></tr>
+                {expenses.length === 0 ? <tr><td colSpan={8}><EmptyState icon={<FaCreditCard />} title="No expenses" /></td></tr>
                   : expenses.map(exp => (
                   <tr key={exp.id}>
                     <td className="muted">{formatDate(exp.expense_date)}</td>
@@ -116,8 +117,8 @@ export default function Expenses() {
                     <td style={{ fontWeight:700, color:'var(--danger)' }}>{formatCurrency(exp.amount)}</td>
                     <td>
                       <div className="flex gap-8">
-                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(exp)}>✏️</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(exp)}>🗑</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(exp)}><FaEdit /></button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(exp)}><FaTrash /></button>
                       </div>
                     </td>
                   </tr>

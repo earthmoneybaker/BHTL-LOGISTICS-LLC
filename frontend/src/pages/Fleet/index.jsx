@@ -1,3 +1,4 @@
+import { FaTractor, FaTrash, FaWrench, FaTruck, FaCheck, FaEdit } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client';
@@ -119,7 +120,7 @@ export default function Fleet() {
       />
 
       <div className="tabs">
-        {[['trucks', `🚛 Trucks (${trucks.length})`], ['trailers', `🚜 Trailers (${trailers.length})`], ['maintenance', `🔧 Maintenance (${maintenance.length})`]].map(([t, l]) => (
+        {[['trucks', `<FaTruck /> Trucks (${trucks.length})`], ['trailers', `<FaTractor /> Trailers (${trailers.length})`], ['maintenance', `<FaWrench /> Maintenance (${maintenance.length})`]].map(([t, l]) => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{l}</button>
         ))}
       </div>
@@ -132,7 +133,7 @@ export default function Fleet() {
                 <table className="data-table">
                   <thead><tr><th>Unit #</th><th>Year/Make/Model</th><th>VIN</th><th>Plate</th><th>Reg. Exp.</th><th>IRP Exp.</th><th>Assigned Driver</th><th>Status</th><th>Actions</th></tr></thead>
                   <tbody>
-                    {trucks.length === 0 ? <tr><td colSpan={9}><EmptyState icon="🚛" title="No trucks" /></td></tr>
+                    {trucks.length === 0 ? <tr><td colSpan={9}><EmptyState icon={<FaTruck />} title="No trucks" /></td></tr>
                       : trucks.map(t => (
                       <tr key={t.id}>
                         <td style={{ fontWeight: 700, fontSize: '15px' }}>{t.unit_number}</td>
@@ -146,9 +147,9 @@ export default function Fleet() {
                         <td>
                           <div className="flex gap-8">
                             <Link to={`/fleet/trucks/${t.id}`} className="btn btn-ghost btn-sm">👁</Link>
-                            <button className="btn btn-ghost btn-sm" onClick={() => openTruck(t)}>✏️</button>
-                            <button className="btn btn-ghost btn-sm" onClick={() => openMaint(null, { entity_type:'truck', truck_id:t.id })}>🔧</button>
-                            <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget({ id:t.id, type:'truck', name:`Truck ${t.unit_number}` })}>🗑</button>
+                            <button className="btn btn-ghost btn-sm" onClick={() => openTruck(t)}><FaEdit /></button>
+                            <button className="btn btn-ghost btn-sm" onClick={() => openMaint(null, { entity_type:'truck', truck_id:t.id })}><FaWrench /></button>
+                            <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget({ id:t.id, type:'truck', name:`Truck ${t.unit_number}` })}><FaTrash /></button>
                           </div>
                         </td>
                       </tr>
@@ -165,7 +166,7 @@ export default function Fleet() {
                 <table className="data-table">
                   <thead><tr><th>Unit #</th><th>Type</th><th>Year/Make</th><th>VIN</th><th>Plate</th><th>Reg. Exp.</th><th>Assigned Truck</th><th>Status</th><th>Actions</th></tr></thead>
                   <tbody>
-                    {trailers.length === 0 ? <tr><td colSpan={9}><EmptyState icon="🚜" title="No trailers" /></td></tr>
+                    {trailers.length === 0 ? <tr><td colSpan={9}><EmptyState icon={<FaTractor />} title="No trailers" /></td></tr>
                       : trailers.map(t => (
                       <tr key={t.id}>
                         <td style={{ fontWeight: 700 }}>{t.unit_number}</td>
@@ -178,8 +179,8 @@ export default function Fleet() {
                         <td><span className={`badge badge-${t.status}`}>{t.status.replace(/_/g,' ')}</span></td>
                         <td>
                           <div className="flex gap-8">
-                            <button className="btn btn-ghost btn-sm" onClick={() => openTrailer(t)}>✏️</button>
-                            <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget({ id:t.id, type:'trailer', name:`Trailer ${t.unit_number}` })}>🗑</button>
+                            <button className="btn btn-ghost btn-sm" onClick={() => openTrailer(t)}><FaEdit /></button>
+                            <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget({ id:t.id, type:'trailer', name:`Trailer ${t.unit_number}` })}><FaTrash /></button>
                           </div>
                         </td>
                       </tr>
@@ -196,10 +197,10 @@ export default function Fleet() {
                 <table className="data-table">
                   <thead><tr><th>Entity</th><th>Date</th><th>Service Type</th><th>Vendor</th><th>Cost</th><th>Mileage</th><th>Next Due</th><th>DOT Insp.</th><th>Actions</th></tr></thead>
                   <tbody>
-                    {maintenance.length === 0 ? <tr><td colSpan={9}><EmptyState icon="🔧" title="No maintenance records" /></td></tr>
+                    {maintenance.length === 0 ? <tr><td colSpan={9}><EmptyState icon={<FaWrench />} title="No maintenance records" /></td></tr>
                       : maintenance.map(m => (
                       <tr key={m.id}>
-                        <td style={{ fontWeight:600 }}>{m.truck_unit ? `🚛 #${m.truck_unit}` : m.trailer_unit ? `🚜 #${m.trailer_unit}` : '—'}</td>
+                        <td style={{ fontWeight:600 }}>{m.truck_unit ? `<FaTruck /> #${m.truck_unit}` : m.trailer_unit ? `<FaTractor /> #${m.trailer_unit}` : '—'}</td>
                         <td className="muted">{formatDate(m.service_date)}</td>
                         <td>{m.service_type}</td>
                         <td className="muted">{m.vendor || '—'}</td>
@@ -211,13 +212,13 @@ export default function Fleet() {
                         </td>
                         <td>
                           {m.dot_inspection ? (
-                            <span>✅ <span className={getExpClass(m.dot_inspection_expiration)} style={{ fontSize:'11px' }}>{formatDate(m.dot_inspection_expiration)}</span></span>
+                            <span><FaCheck /> <span className={getExpClass(m.dot_inspection_expiration)} style={{ fontSize:'11px' }}>{formatDate(m.dot_inspection_expiration)}</span></span>
                           ) : '—'}
                         </td>
                         <td>
                           <div className="flex gap-8">
-                            <button className="btn btn-ghost btn-sm" onClick={() => openMaint(m, {})}>✏️</button>
-                            <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget({ id:m.id, type:'maint', name:'record' })}>🗑</button>
+                            <button className="btn btn-ghost btn-sm" onClick={() => openMaint(m, {})}><FaEdit /></button>
+                            <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget({ id:m.id, type:'maint', name:'record' })}><FaTrash /></button>
                           </div>
                         </td>
                       </tr>

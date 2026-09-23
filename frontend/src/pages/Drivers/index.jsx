@@ -1,3 +1,4 @@
+import { FaTrash, FaEdit, FaCar } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client';
@@ -76,7 +77,7 @@ export default function Drivers() {
               </thead>
               <tbody>
                 {drivers.length === 0 ? (
-                  <tr><td colSpan={8}><EmptyState icon="🚗" title="No drivers" description="Add your first driver." /></td></tr>
+                  <tr><td colSpan={8}><EmptyState icon={<FaCar />} title="No drivers" description="Add your first driver." /></td></tr>
                 ) : drivers.map(d => (
                   <tr key={d.id}>
                     <td>
@@ -92,8 +93,8 @@ export default function Drivers() {
                     <td>
                       <div className="flex gap-8">
                         <Link to={`/drivers/${d.id}`} className="btn btn-ghost btn-sm">👁</Link>
-                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(d)}>✏️</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(d)}>🗑</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(d)}><FaEdit /></button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(d)}><FaTrash /></button>
                       </div>
                     </td>
                   </tr>

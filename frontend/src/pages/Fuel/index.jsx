@@ -1,3 +1,4 @@
+import { FaTrash, FaEdit, FaGasPump, FaRoad, FaChartBar } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import api, { downloadFile } from '../../api/client';
 import { Spinner, EmptyState, PageHeader, Modal, formatCurrency, formatDate, ConfirmModal } from '../../components/ui';
@@ -111,7 +112,7 @@ export default function Fuel() {
       />
 
       <div className="tabs">
-        {[['fuel',`⛽ Fuel Purchases (${fuel.length})`], ['miles',`🛣 Miles by State (${miles.length})`], ['ifta','📊 IFTA Report']].map(([t,l]) => (
+        {[['fuel',`<FaGasPump /> Fuel Purchases (${fuel.length})`], ['miles',`<FaRoad /> Miles by State (${miles.length})`], ['ifta','<FaChartBar /> IFTA Report']].map(([t,l]) => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{l}</button>
         ))}
       </div>
@@ -140,7 +141,7 @@ export default function Fuel() {
                   <table className="data-table">
                     <thead><tr><th>Date</th><th>Truck</th><th>State</th><th>Gallons</th><th>$/Gal</th><th>Total</th><th>Vendor</th><th>Actions</th></tr></thead>
                     <tbody>
-                      {fuel.length === 0 ? <tr><td colSpan={8}><EmptyState icon="⛽" title="No fuel purchases logged" /></td></tr>
+                      {fuel.length === 0 ? <tr><td colSpan={8}><EmptyState icon={<FaGasPump />} title="No fuel purchases logged" /></td></tr>
                         : fuel.map(f => (
                         <tr key={f.id}>
                           <td className="muted">{formatDate(f.purchase_date)}</td>
@@ -152,8 +153,8 @@ export default function Fuel() {
                           <td className="muted">{f.vendor || '—'}</td>
                           <td>
                             <div className="flex gap-8">
-                              <button className="btn btn-ghost btn-sm" onClick={() => { setEditingFuel(f); setFuelForm({ ...defaultFuelForm, ...f, purchase_date: f.purchase_date?.split('T')[0]||'' }); setShowFuelModal(true); }}>✏️</button>
-                              <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(f)}>🗑</button>
+                              <button className="btn btn-ghost btn-sm" onClick={() => { setEditingFuel(f); setFuelForm({ ...defaultFuelForm, ...f, purchase_date: f.purchase_date?.split('T')[0]||'' }); setShowFuelModal(true); }}><FaEdit /></button>
+                              <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(f)}><FaTrash /></button>
                             </div>
                           </td>
                         </tr>
@@ -171,7 +172,7 @@ export default function Fuel() {
                 <table className="data-table">
                   <thead><tr><th>Date</th><th>Truck</th><th>Load #</th><th>State</th><th>Miles</th><th>Quarter</th></tr></thead>
                   <tbody>
-                    {miles.length === 0 ? <tr><td colSpan={6}><EmptyState icon="🛣" title="No miles logged yet" /></td></tr>
+                    {miles.length === 0 ? <tr><td colSpan={6}><EmptyState icon={<FaRoad />} title="No miles logged yet" /></td></tr>
                       : miles.map(m => (
                       <tr key={m.id}>
                         <td className="muted">{formatDate(m.trip_date)}</td>

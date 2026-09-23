@@ -1,3 +1,4 @@
+import { FaTrash, FaEdit, FaHandshake } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client';
@@ -81,7 +82,7 @@ export default function Customers() {
               </thead>
               <tbody>
                 {customers.length === 0 ? (
-                  <tr><td colSpan={7}><EmptyState icon="🤝" title="No customers" description="Add your first customer or broker." /></td></tr>
+                  <tr><td colSpan={7}><EmptyState icon={<FaHandshake />} title="No customers" description="Add your first customer or broker." /></td></tr>
                 ) : customers.map(c => (
                   <tr key={c.id}>
                     <td>
@@ -101,8 +102,8 @@ export default function Customers() {
                     <td>
                       <div className="flex gap-8">
                         <button className="btn btn-ghost btn-sm" onClick={() => openDetail(c.id)}>👁</button>
-                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}>✏️</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(c)}>🗑</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}><FaEdit /></button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(c)}><FaTrash /></button>
                       </div>
                     </td>
                   </tr>

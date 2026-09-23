@@ -1,3 +1,4 @@
+import { FaTrash, FaClipboardList, FaFileAlt, FaUser, FaBox, FaMoneyBillWave } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api, { downloadFile } from '../../api/client';
@@ -88,7 +89,7 @@ export default function DriverDetail() {
       <div className="tabs">
         {['profile','dq-file','loads','documents','payroll'].map(t => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>
-            {t === 'profile' ? '👤 Profile' : t === 'dq-file' ? `📋 DQ File (${dqComplete}/${dqTotal})` : t === 'loads' ? `📦 Loads (${loads.length})` : t === 'documents' ? `📄 Docs (${docs.length})` : '💵 Payroll'}
+            {t === 'profile' ? '<FaUser /> Profile' : t === 'dq-file' ? `<FaClipboardList /> DQ File (${dqComplete}/${dqTotal})` : t === 'loads' ? `<FaBox /> Loads (${loads.length})` : t === 'documents' ? `<FaFileAlt /> Docs (${docs.length})` : '<FaMoneyBillWave /> Payroll'}
           </button>
         ))}
       </div>
@@ -213,7 +214,7 @@ export default function DriverDetail() {
                       <td>
                         <div className="flex gap-8">
                           <button className="btn btn-secondary btn-sm" onClick={() => downloadFile(`/documents/${doc.id}/download`, doc.file_name || 'document')}>⬇ Download</button>
-                          <button className="btn btn-danger btn-sm" onClick={() => deleteDoc(doc.id)}>🗑</button>
+                          <button className="btn btn-danger btn-sm" onClick={() => deleteDoc(doc.id)}><FaTrash /></button>
                         </div>
                       </td>
                     </tr>

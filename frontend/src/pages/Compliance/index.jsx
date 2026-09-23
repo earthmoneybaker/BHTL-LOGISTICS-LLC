@@ -1,3 +1,4 @@
+import { FaTrash, FaEdit, FaClipboardList } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import api, { downloadFile } from '../../api/client';
 import { Spinner, EmptyState, PageHeader, Modal, ExpirationBadge, formatDate, daysUntil } from '../../components/ui';
@@ -120,7 +121,7 @@ export default function Compliance() {
             <table className="data-table">
               <thead><tr><th>Type</th><th>Document</th><th>Entity</th><th>Expiration</th><th>Status</th><th>Uploaded</th><th>Actions</th></tr></thead>
               <tbody>
-                {docs.length === 0 ? <tr><td colSpan={7}><EmptyState icon="📋" title="No documents" description="Upload your first document." /></td></tr>
+                {docs.length === 0 ? <tr><td colSpan={7}><EmptyState icon={<FaClipboardList />} title="No documents" description="Upload your first document." /></td></tr>
                   : docs.map(doc => {
                   const days = daysUntil(doc.expiration_date);
                   const status = !doc.expiration_date ? 'no-exp' : days < 0 ? 'expired' : days <= 30 ? 'danger' : days <= 90 ? 'warning' : 'ok';
@@ -143,8 +144,8 @@ export default function Compliance() {
                           {doc.file_name && (
                             <button className="btn btn-secondary btn-sm" onClick={() => downloadFile(`/documents/${doc.id}/download`, doc.file_name || 'document')}>⬇</button>
                           )}
-                          <button className="btn btn-ghost btn-sm" onClick={() => openEdit(doc)}>✏️</button>
-                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete(doc.id)}>🗑</button>
+                          <button className="btn btn-ghost btn-sm" onClick={() => openEdit(doc)}><FaEdit /></button>
+                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete(doc.id)}><FaTrash /></button>
                         </div>
                       </td>
                     </tr>
