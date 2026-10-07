@@ -1,4 +1,4 @@
-import { FaTractor, FaTrash, FaTruck, FaExclamationTriangle, FaClipboardList, FaFileAlt, FaCreditCard, FaMapMarkerAlt, FaFlagCheckered, FaUser } from 'react-icons/fa';
+import { FaTractor, FaTrash, FaTruck, FaExclamationTriangle, FaClipboardList, FaFileAlt, FaCreditCard, FaMapMarkerAlt, FaFlagCheckered, FaUser, FaCheck, FaPhone } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api, { downloadFile } from '../../api/client';

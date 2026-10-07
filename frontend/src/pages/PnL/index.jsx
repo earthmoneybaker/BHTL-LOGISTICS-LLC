@@ -1,4 +1,4 @@
-import { FaChartBar, FaCreditCard, FaMoneyBillWave, FaSearch, FaChartLine, FaDollarSign, FaChartArea } from 'react-icons/fa';
+import { FaChartBar, FaCreditCard, FaMoneyBillWave, FaSearch, FaChartLine, FaDollarSign, FaChartArea, FaDownload } from 'react-icons/fa';
 import { categoryLabel } from '../../utils/expenseCategories';
 import { useState, useEffect } from 'react';
 import api, { downloadFile } from '../../api/client';
