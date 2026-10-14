@@ -1246,3 +1246,52 @@ table.data-table {
   border-color: var(--border-color);
   border-top-color: var(--brand-blue-light);
 }
+
+/* ── Multi-select / Bulk Delete ─────────────────────────────────────────── */
+.row-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--brand-blue-light);
+  border-radius: 4px;
+}
+
+.row-selected td {
+  background: rgba(37, 99, 235, 0.08) !important;
+}
+
+.bulk-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(37,99,235,0.08));
+  border: 1px solid rgba(37,99,235,0.35);
+  border-radius: 10px;
+  animation: slideDown 0.18s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.bulk-action-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-right: auto;
+}
+
+:root[data-theme="light"] .row-selected td {
+  background: rgba(37, 99, 235, 0.06) !important;
+}
+
+:root[data-theme="light"] .bulk-action-bar {
+  background: linear-gradient(135deg, rgba(37,99,235,0.10), rgba(37,99,235,0.05));
+  border-color: rgba(37,99,235,0.25);
+}

@@ -27,7 +27,7 @@ export function ExpirationBadge({ date, label }) {
 }
 
 // Simple confirmation dialog
-export function ConfirmModal({ title, message, onConfirm, onCancel, danger = true }) {
+export function ConfirmModal({ title, message, onConfirm, onCancel, danger = true, confirmLabel = 'Confirm' }) {
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
@@ -41,7 +41,7 @@ export function ConfirmModal({ title, message, onConfirm, onCancel, danger = tru
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
           <button className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`} onClick={onConfirm}>
-            Confirm
+            {confirmLabel}
           </button>
         </div>
       </div>

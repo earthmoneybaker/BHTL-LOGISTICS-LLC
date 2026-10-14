@@ -1,4 +1,4 @@
-import { FaTrash, FaEdit, FaCreditCard } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaCreditCard, FaCheckSquare } from 'react-icons/fa';
 import { EXPENSE_CATEGORIES, categoryLabel } from '../../utils/expenseCategories';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
@@ -23,6 +23,10 @@ export default function Expenses() {
   const [drivers, setDrivers] = useState([]);
   const [filters, setFilters] = useState({ category: '', truck_id: '', date_from: '', date_to: '' });
   const [deleteTarget, setDeleteTarget] = useState(null);
+  // Multi-select state
+  const [selected, setSelected] = useState(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -38,6 +42,7 @@ export default function Expenses() {
       setSummary(sumRes.data);
       setTrucks(truckRes.data);
       setDrivers(driverRes.data);
+      setSelected(new Set()); // clear selection on refresh
     } finally { setLoading(false); }
   }, [filters]);
 
@@ -60,8 +65,39 @@ export default function Expenses() {
     catch { toast.error('Failed'); }
   };
 
+  // Multi-select helpers
+  const toggleSelect = (id) => setSelected(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
+
+  const toggleSelectAll = () => {
+    if (selected.size === expenses.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(expenses.map(e => e.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const res = await api.post('/expenses/bulk-delete', { ids: [...selected] });
+      toast.success(`${res.data.deleted} expense${res.data.deleted !== 1 ? 's' : ''} deleted`);
+      setShowBulkConfirm(false);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Bulk delete failed');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   const f = (k) => (e) => setForm(p => ({ ...p, [k]: e.target.value }));
   const totalExpenses = expenses.reduce((a, e) => a + parseFloat(e.amount), 0);
+  const allSelected = expenses.length > 0 && selected.size === expenses.length;
+  const someSelected = selected.size > 0;
 
   return (
     <div>
@@ -99,15 +135,52 @@ export default function Expenses() {
         <button className="btn btn-secondary btn-sm" onClick={() => setFilters({ category:'', truck_id:'', date_from:'', date_to:'' })}>Clear</button>
       </div>
 
+      {/* Bulk action bar */}
+      {someSelected && (
+        <div className="bulk-action-bar">
+          <span className="bulk-action-count">
+            <FaCheckSquare style={{ color: 'var(--brand-blue-light)' }} />
+            {selected.size} expense{selected.size !== 1 ? 's' : ''} selected
+          </span>
+          <button className="btn btn-danger btn-sm" onClick={() => setShowBulkConfirm(true)}>
+            <FaTrash /> Delete Selected
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={() => setSelected(new Set())}>
+            Deselect All
+          </button>
+        </div>
+      )}
+
       {loading ? <Spinner /> : (
         <div className="card" style={{ padding: 0 }}>
           <div className="table-wrapper">
             <table className="data-table">
-              <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Vendor</th><th>Truck</th><th>Driver</th><th>Amount</th><th>Actions</th></tr></thead>
+              <thead>
+                <tr>
+                  <th style={{ width: 40 }}>
+                    <input
+                      type="checkbox"
+                      className="row-checkbox"
+                      checked={allSelected}
+                      onChange={toggleSelectAll}
+                      title="Select all"
+                    />
+                  </th>
+                  <th>Date</th><th>Category</th><th>Description</th><th>Vendor</th><th>Truck</th><th>Driver</th><th>Amount</th><th>Actions</th>
+                </tr>
+              </thead>
               <tbody>
-                {expenses.length === 0 ? <tr><td colSpan={8}><EmptyState icon={<FaCreditCard />} title="No expenses" /></td></tr>
+                {expenses.length === 0 ? <tr><td colSpan={9}><EmptyState icon={<FaCreditCard />} title="No expenses" /></td></tr>
                   : expenses.map(exp => (
-                  <tr key={exp.id}>
+                  <tr key={exp.id} className={selected.has(exp.id) ? 'row-selected' : ''}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        className="row-checkbox"
+                        checked={selected.has(exp.id)}
+                        onChange={() => toggleSelect(exp.id)}
+                      />
+                    </td>
                     <td className="muted">{formatDate(exp.expense_date)}</td>
                     <td><span className="badge badge-invoiced">{categoryLabel(exp.category)}</span></td>
                     <td className="truncate">{exp.description || '—'}</td>
@@ -163,6 +236,16 @@ export default function Expenses() {
 
       {deleteTarget && (
         <ConfirmModal title="Delete Expense" message="Delete this expense record?" onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} />
+      )}
+
+      {showBulkConfirm && (
+        <ConfirmModal
+          title="Delete Selected Expenses"
+          message={`Permanently delete ${selected.size} expense${selected.size !== 1 ? 's' : ''}? This cannot be undone.`}
+          onConfirm={handleBulkDelete}
+          onCancel={() => setShowBulkConfirm(false)}
+          confirmLabel={bulkDeleting ? 'Deleting...' : `Delete ${selected.size} Expenses`}
+        />
       )}
     </div>
   );

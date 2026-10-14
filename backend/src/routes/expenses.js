@@ -136,4 +136,21 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// POST /api/expenses/bulk-delete — delete multiple expenses by id array
+router.post('/bulk-delete', async (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0)
+    return res.status(400).json({ error: 'ids array required' });
+  try {
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+    const result = await db.query(
+      `DELETE FROM expenses WHERE id IN (${placeholders}) RETURNING id`,
+      ids
+    );
+    res.json({ deleted: result.rowCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

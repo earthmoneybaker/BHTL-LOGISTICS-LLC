@@ -1,4 +1,4 @@
-import { FaTrash, FaWrench, FaEdit, FaExclamationTriangle, FaMapMarkerAlt, FaFlagCheckered, FaBox, FaEye, FaPlus } from 'react-icons/fa';
+import { FaTrash, FaWrench, FaEdit, FaExclamationTriangle, FaMapMarkerAlt, FaFlagCheckered, FaBox, FaEye, FaPlus, FaCheckSquare } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/client';
@@ -30,6 +30,10 @@ export default function Loads() {
   const [backfilling, setBackfilling] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [newCustomerMode, setNewCustomerMode] = useState(false);
+  // Multi-select state
+  const [selected, setSelected] = useState(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -47,6 +51,7 @@ export default function Loads() {
       setTrucks(truckRes.data);
       setTrailers(trailerRes.data);
       setDrivers(driverRes.data);
+      setSelected(new Set()); // clear selection on refresh
     } finally {
       setLoading(false);
     }
@@ -104,6 +109,35 @@ export default function Loads() {
     }
   };
 
+  // Multi-select helpers
+  const toggleSelect = (id) => setSelected(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
+
+  const toggleSelectAll = () => {
+    if (selected.size === loads.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(loads.map(l => l.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const res = await api.post('/loads/bulk-delete', { ids: [...selected] });
+      toast.success(`${res.data.deleted} load${res.data.deleted !== 1 ? 's' : ''} deleted`);
+      setShowBulkConfirm(false);
+      loadData();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Bulk delete failed');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   const f = (k) => (e) => setForm(prev => ({ ...prev, [k]: e.target.value }));
 
   const handleBackfill = async () => {
@@ -118,6 +152,9 @@ export default function Loads() {
       setBackfilling(false);
     }
   };
+
+  const allSelected = loads.length > 0 && selected.size === loads.length;
+  const someSelected = selected.size > 0;
 
   return (
     <div>
@@ -151,12 +188,37 @@ export default function Loads() {
         <button className="btn btn-secondary btn-sm" onClick={() => setFilters({ status: '', search: '', date_from: '', date_to: '' })}>Clear</button>
       </div>
 
+      {/* Bulk action bar */}
+      {someSelected && (
+        <div className="bulk-action-bar">
+          <span className="bulk-action-count">
+            <FaCheckSquare style={{ color: 'var(--brand-blue-light)' }} />
+            {selected.size} load{selected.size !== 1 ? 's' : ''} selected
+          </span>
+          <button className="btn btn-danger btn-sm" onClick={() => setShowBulkConfirm(true)}>
+            <FaTrash /> Delete Selected
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={() => setSelected(new Set())}>
+            Deselect All
+          </button>
+        </div>
+      )}
+
       {loading ? <Spinner /> : (
         <div className="card" style={{ padding: 0 }}>
           <div className="table-wrapper">
             <table className="data-table">
               <thead>
                 <tr>
+                  <th style={{ width: 40 }}>
+                    <input
+                      type="checkbox"
+                      className="row-checkbox"
+                      checked={allSelected}
+                      onChange={toggleSelectAll}
+                      title="Select all"
+                    />
+                  </th>
                   <th>Load #</th>
                   <th>Customer</th>
                   <th>Origin → Dest</th>
@@ -171,9 +233,17 @@ export default function Loads() {
               </thead>
               <tbody>
                 {loads.length === 0 ? (
-                  <tr><td colSpan={10}><EmptyState icon={<FaBox />} title="No loads found" description="Create your first load to get started." /></td></tr>
+                  <tr><td colSpan={11}><EmptyState icon={<FaBox />} title="No loads found" description="Create your first load to get started." /></td></tr>
                 ) : loads.map(load => (
-                  <tr key={load.id}>
+                  <tr key={load.id} className={selected.has(load.id) ? 'row-selected' : ''}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        className="row-checkbox"
+                        checked={selected.has(load.id)}
+                        onChange={() => toggleSelect(load.id)}
+                      />
+                    </td>
                     <td className="mono">
                       <Link to={`/loads/${load.id}`} style={{ color: 'var(--brand-blue-light)', fontWeight: 600, textDecoration: 'none' }}>
                         {load.load_number}
@@ -412,6 +482,16 @@ export default function Loads() {
           message={`Permanently delete load ${deleteTarget.load_number}? This cannot be undone.`}
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {showBulkConfirm && (
+        <ConfirmModal
+          title="Delete Selected Loads"
+          message={`Permanently delete ${selected.size} load${selected.size !== 1 ? 's' : ''}? This cannot be undone.`}
+          onConfirm={handleBulkDelete}
+          onCancel={() => setShowBulkConfirm(false)}
+          confirmLabel={bulkDeleting ? 'Deleting...' : `Delete ${selected.size} Loads`}
         />
       )}
     </div>

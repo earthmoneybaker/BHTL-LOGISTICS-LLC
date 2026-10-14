@@ -245,6 +245,23 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// POST /api/loads/bulk-delete — delete multiple loads by id array
+router.post('/bulk-delete', requireAdmin, async (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0)
+    return res.status(400).json({ error: 'ids array required' });
+  try {
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+    const result = await db.query(
+      `DELETE FROM loads WHERE id IN (${placeholders}) RETURNING id`,
+      ids
+    );
+    res.json({ deleted: result.rowCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/loads/backfill-paid-invoices — one-time (or repeatable) sweep:
 // finds every load already marked 'paid' and makes sure it has a correctly-dated
 // invoice, fixing any that were created with today's date before this feature existed.
