@@ -15,6 +15,7 @@ const PAGE_TITLES = {
   '/expenses': 'Expenses',
   '/payroll': 'Payroll',
   '/pnl': 'Profit & Loss',
+  '/settlements': 'Driver Settlements',
   '/fuel': 'Fuel & IFTA',
   '/users': 'User Management',
   '/settings': 'Company Settings',

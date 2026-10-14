@@ -56,6 +56,7 @@ app.use('/api/settings', require('./routes/settings'));
 app.use('/api/import', require('./routes/import'));
 app.use('/api/extract', require('./routes/extract'));
 app.use('/api/other-revenue', require('./routes/otherRevenue'));
+app.use('/api/settlements', require('./routes/settlements'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

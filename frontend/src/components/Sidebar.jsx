@@ -1,4 +1,4 @@
-import { FaTruck, FaGasPump, FaChartBar, FaClipboardList, FaFileAlt, FaCreditCard, FaBox, FaMoneyBillWave, FaChartLine, FaDollarSign, FaUsers, FaCar, FaHandshake, FaCog, FaFileImport, FaSignOutAlt } from 'react-icons/fa';
+import { FaTruck, FaGasPump, FaChartBar, FaClipboardList, FaFileAlt, FaCreditCard, FaBox, FaMoneyBillWave, FaChartLine, FaDollarSign, FaUsers, FaCar, FaHandshake, FaCog, FaFileImport, FaSignOutAlt, FaFileInvoiceDollar } from 'react-icons/fa';
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +22,7 @@ const NAV_ITEMS = [
     { to: '/other-revenue', label: 'Other Revenue', icon: <FaMoneyBillWave /> },
     { to: '/expenses', label: 'Expenses', icon: <FaCreditCard /> },
     { to: '/payroll', label: 'Payroll', icon: <FaMoneyBillWave /> },
+    { to: '/settlements', label: 'Settlements', icon: <FaFileInvoiceDollar />, adminOnly: true },
     { to: '/pnl', label: 'Profit & Loss', icon: <FaChartLine />, adminOnly: true },
     { to: '/fuel', label: 'Fuel & IFTA', icon: <FaGasPump /> },
   ]},

@@ -24,6 +24,7 @@ import Settings from './pages/Settings/index';
 import Import from './pages/Import/index';
 import ExtractLoad from './pages/ExtractLoad/index';
 import OtherRevenue from './pages/OtherRevenue/index';
+import Settlements from './pages/Settlements/index';
 
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading, isAdmin } = useAuth();
@@ -60,6 +61,7 @@ function AppRoutes() {
       <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
       <Route path="/payroll" element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
       <Route path="/pnl" element={<ProtectedRoute adminOnly><PnL /></ProtectedRoute>} />
+      <Route path="/settlements" element={<ProtectedRoute adminOnly><Settlements /></ProtectedRoute>} />
       <Route path="/fuel" element={<ProtectedRoute><Fuel /></ProtectedRoute>} />
       <Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute adminOnly><Users /></ProtectedRoute>} />
