@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { section: 'OPERATIONS', items: [
     { to: '/loads', label: 'Load Management', icon: <FaBox /> },
     { to: '/extract-load', label: 'Extract from Document', icon: <FaFileAlt /> },
-    { to: '/customers', label: 'Customers', icon: <FaHandshake /> },
+    { to: '/customers', label: 'Brokers', icon: <FaHandshake /> },
     { to: '/drivers', label: 'Drivers', icon: <FaCar /> },
     { to: '/fleet', label: 'Fleet', icon: <FaTruck /> },
   ]},

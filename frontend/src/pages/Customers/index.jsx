@@ -1,4 +1,4 @@
-import { FaTrash, FaEdit, FaHandshake } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaHandshake, FaEye } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client';
@@ -46,8 +46,8 @@ export default function Customers() {
   const handleSave = async (e) => {
     e.preventDefault(); setSaving(true);
     try {
-      if (editing) { await api.put(`/customers/${editing.id}`, form); toast.success('Customer updated'); }
-      else { await api.post('/customers', form); toast.success('Customer created'); }
+      if (editing) { await api.put(`/customers/${editing.id}`, form); toast.success('Broker updated'); }
+      else { await api.post('/customers', form); toast.success('Broker created'); }
       setShowModal(false); load();
     } catch (err) { toast.error(err.response?.data?.error || 'Failed to save'); }
     finally { setSaving(false); }
@@ -56,7 +56,7 @@ export default function Customers() {
   const handleDelete = async () => {
     try {
       await api.delete(`/customers/${deleteTarget.id}`);
-      toast.success('Customer deactivated');
+      toast.success('Broker deactivated');
       setDeleteTarget(null); load();
     } catch { toast.error('Failed to deactivate'); }
   };
@@ -65,11 +65,11 @@ export default function Customers() {
 
   return (
     <div>
-      <PageHeader title="Customers" subtitle={`${customers.length} customers`}
-        actions={<button className="btn btn-primary" onClick={openCreate}>+ New Customer</button>} />
+      <PageHeader title="Brokers" subtitle={`${customers.length} brokers`}
+        actions={<button className="btn btn-primary" onClick={openCreate}>+ New Broker</button>} />
 
       <div className="filter-bar mb-16">
-        <input className="search-input" placeholder="Search name, email..." value={search}
+        <input className="search-input" placeholder="Search broker name, email..." value={search}
           onChange={e => setSearch(e.target.value)} />
       </div>
 
@@ -82,7 +82,7 @@ export default function Customers() {
               </thead>
               <tbody>
                 {customers.length === 0 ? (
-                  <tr><td colSpan={7}><EmptyState icon={<FaHandshake />} title="No customers" description="Add your first customer or broker." /></td></tr>
+                  <tr><td colSpan={7}><EmptyState icon={<FaHandshake />} title="No brokers" description="Add your first broker." /></td></tr>
                 ) : customers.map(c => (
                   <tr key={c.id}>
                     <td>
@@ -116,14 +116,14 @@ export default function Customers() {
 
       {/* Create/Edit Modal */}
       {showModal && (
-        <Modal title={editing ? `Edit — ${editing.name}` : 'New Customer'} onClose={() => setShowModal(false)} size="modal-lg"
+        <Modal title={editing ? `Edit — ${editing.name}` : 'New Broker'} onClose={() => setShowModal(false)} size="modal-lg"
           footer={<><button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
             <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : editing ? 'Update' : 'Create'}</button></>}
         >
           <form onSubmit={handleSave}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div className="form-group" style={{ gridColumn: '1/-1' }}>
-                <label className="form-label">Company / Broker Name *</label>
+                <label className="form-label">Broker / Company Name *</label>
                 <input className="form-control" value={form.name} onChange={f('name')} required />
               </div>
               <div className="form-group"><label className="form-label">Contact Name</label><input className="form-control" value={form.contact_name} onChange={f('contact_name')} /></div>
@@ -190,7 +190,7 @@ export default function Customers() {
       )}
 
       {deleteTarget && (
-        <ConfirmModal title="Deactivate Customer" message={`Deactivate ${deleteTarget.name}? They will no longer appear in active lists.`}
+        <ConfirmModal title="Deactivate Broker" message={`Deactivate ${deleteTarget.name}? They will no longer appear in active lists.`}
           onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} />
       )}
     </div>
