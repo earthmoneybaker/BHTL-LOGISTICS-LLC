@@ -1,4 +1,4 @@
-import { FaTractor, FaTrash, FaWrench, FaTruck, FaCheck, FaEdit } from 'react-icons/fa';
+import { FaTractor, FaTrash, FaWrench, FaTruck, FaCheck, FaEdit, FaEye } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client';

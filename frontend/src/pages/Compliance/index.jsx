@@ -1,4 +1,4 @@
-import { FaTrash, FaEdit, FaClipboardList } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaClipboardList, FaExclamationCircle } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import api, { downloadFile } from '../../api/client';
 import { Spinner, EmptyState, PageHeader, Modal, ExpirationBadge, formatDate, daysUntil } from '../../components/ui';

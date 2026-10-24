@@ -1,4 +1,4 @@
-import { FaTrash, FaEdit, FaCar } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaCar, FaEye } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client';
