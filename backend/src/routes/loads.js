@@ -97,7 +97,7 @@ router.get('/', async (req, res) => {
        LEFT JOIN trailers tr ON tr.id=l.trailer_id
        LEFT JOIN invoices i ON i.load_id=l.id
        WHERE ${conditions.join(' AND ')}
-       ORDER BY l.created_at DESC`,
+       ORDER BY l.pickup_date DESC NULLS LAST, l.created_at DESC`,
       params
     );
     res.json(result.rows);

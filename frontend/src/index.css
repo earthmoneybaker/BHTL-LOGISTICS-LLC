@@ -1295,3 +1295,10 @@ table.data-table {
   background: linear-gradient(135deg, rgba(37,99,235,0.10), rgba(37,99,235,0.05));
   border-color: rgba(37,99,235,0.25);
 }
+
+/* Paste Rate Con — flagged field highlight */
+.flagged-field {
+  border-color: #F59E0B !important;
+  background: rgba(245, 158, 11, 0.06) !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+}

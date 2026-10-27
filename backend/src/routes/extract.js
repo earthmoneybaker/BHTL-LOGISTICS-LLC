@@ -251,4 +251,272 @@ router.post('/create-batch', async (req, res) => {
   res.json({ expensesCreated, revenueCreated, failed: errors.length, errors });
 });
 
+// ============ PASTE RATE CONFIRMATION (pure text parsing — no API usage) ============
+
+/**
+ * Normalises a raw date string found in text into YYYY-MM-DD.
+ * Handles: MM/DD/YYYY, MM-DD-YYYY, Month DD YYYY, DD Month YYYY, YYYY-MM-DD.
+ * Returns null when uncertain.
+ */
+function parseDate(raw) {
+  if (!raw) return null;
+  raw = raw.trim();
+  // Already ISO
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  // MM/DD/YYYY or MM-DD-YYYY
+  let m = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+  // Month name variants
+  const months = { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12 };
+  m = raw.match(/^(\w{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})$/i);
+  if (m) {
+    const mo = months[m[1].toLowerCase().slice(0,3)];
+    if (mo) return `${m[3]}-${String(mo).padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+  }
+  m = raw.match(/^(\d{1,2})\s+(\w{3,9})\.?\s+(\d{4})$/i);
+  if (m) {
+    const mo = months[m[2].toLowerCase().slice(0,3)];
+    if (mo) return `${m[3]}-${String(mo).padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  }
+  return null;
+}
+
+/**
+ * Extract the most likely dollar amount that is a "carrier rate".
+ * Strategy: look for lines that contain rate-related keywords AND a dollar value.
+ * Returns { value, ambiguous } where ambiguous=true means multiple candidates found.
+ */
+function extractRate(text) {
+  const lines = text.split('\n');
+  const rateKeywords = /carrier\s*rate|agreed\s*rate|total\s*rate|load\s*rate|freight\s*rate|pay(?:ment)?(?:\s*amount)?|all[-\s]in\s*rate|flat\s*rate|linehaul/i;
+  const dollarPattern = /\$\s*([\d,]+(?:\.\d{1,2})?)|(?<!\d)([\d,]{3,}(?:\.\d{1,2})?)(?=\s*(?:USD|dollars?)?(?:\s|$))/i;
+  const candidates = [];
+  for (const line of lines) {
+    if (rateKeywords.test(line)) {
+      const m = line.match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);
+      if (m) {
+        const val = parseFloat(m[1].replace(/,/g,''));
+        if (val >= 100 && val <= 50000) candidates.push(val);
+      }
+    }
+  }
+  if (candidates.length === 1) return { value: candidates[0], ambiguous: false };
+  if (candidates.length > 1) return { value: candidates[0], ambiguous: true };
+  // Fallback: scan for any dollar value between $200–$20,000 not near a phone/zip
+  const allDollars = [];
+  for (const line of lines) {
+    if (/phone|fax|zip|mc#|dot#|ein|tax\s*id|ext/i.test(line)) continue;
+    const m = line.match(/\$\s*([\d,]+(?:\.\d{2})?)/g);
+    if (m) {
+      for (const hit of m) {
+        const val = parseFloat(hit.replace(/[$,]/g,''));
+        if (val >= 200 && val <= 20000) allDollars.push(val);
+      }
+    }
+  }
+  if (allDollars.length === 1) return { value: allDollars[0], ambiguous: false };
+  if (allDollars.length > 1) return { value: Math.max(...allDollars), ambiguous: true };
+  return { value: null, ambiguous: false };
+}
+
+/**
+ * Given a block of text that represents a stop (pickup or delivery),
+ * extract address parts, date, time, facility name, reference.
+ */
+function parseStopBlock(block) {
+  const result = {};
+  // Facility name: first non-empty line that is not all-caps abbreviation or date/address
+  const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+
+  // Date
+  const datePatterns = [
+    /(?:date|appt?|appointment|pu\s*date|delivery\s*date|pick\s*up\s*date|sched(?:uled)?)[\s:\-]*(.+)/i,
+    /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/,
+    /(\w{3,9}\.?\s+\d{1,2},?\s+\d{4})/i,
+  ];
+  for (const dp of datePatterns) {
+    const m = block.match(dp);
+    if (m) {
+      const d = parseDate(m[1].trim().split(/[\n\r]/)[0].trim());
+      if (d) { result.date = d; break; }
+    }
+  }
+
+  // Time
+  const timeMatch = block.match(/(?:time|appt?|window|hrs?)[\s:\-]*(\d{1,2}:\d{2}\s*(?:AM|PM)?(?:\s*[-–]\s*\d{1,2}:\d{2}\s*(?:AM|PM)?)?)/i)
+    || block.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)?(?:\s*[-–]\s*\d{1,2}:\d{2}\s*(?:AM|PM)?)?)/i);
+  if (timeMatch) result.time = timeMatch[1].trim();
+
+  // ZIP (5-digit or 5+4)
+  const zipMatch = block.match(/\b(\d{5}(?:-\d{4})?)\b/);
+  if (zipMatch) result.zip = zipMatch[1];
+
+  // State (2-letter after city or before zip)
+  const stateMatch = block.match(/,\s*([A-Z]{2})\s+\d{5}/) || block.match(/\b([A-Z]{2})\s+\d{5}/);
+  if (stateMatch) result.state = stateMatch[1];
+
+  // City (before state+zip pattern)
+  const cityMatch = block.match(/([A-Za-z][A-Za-z\s.'-]+),\s*[A-Z]{2}\s+\d{5}/)
+    || block.match(/([A-Za-z][A-Za-z\s.'-]+),\s*[A-Z]{2}/);
+  if (cityMatch) result.city = cityMatch[1].trim();
+
+  // Street address (number + street name)
+  const addrMatch = block.match(/(\d+\s+[A-Za-z0-9\s.,#'-]{5,60}(?:Ave|Blvd|Dr|Rd|St|Ln|Way|Pkwy|Hwy|Highway|Court|Ct|Circle|Cir|Place|Pl|Suite|Ste)?\.?)/i);
+  if (addrMatch) result.address = addrMatch[1].trim();
+
+  // Reference number
+  const refMatch = block.match(/(?:ref(?:erence)?(?:\s*#|\s*num(?:ber)?)?|pu\s*#|po\s*#|conf(?:irmation)?(?:\s*#)?)[\s:\-]*([A-Z0-9\-]{3,})/i);
+  if (refMatch) result.ref = refMatch[1].trim();
+
+  // Facility / company name: first line that looks like a name (not all digits, not a date)
+  for (const line of lines) {
+    if (line.length < 3 || /^\d/.test(line) || /^\d{1,2}[\/\-]/.test(line)) continue;
+    if (/^(pickup|delivery|origin|destination|ship\s*from|ship\s*to|consignee|shipper|date|time|address|phone|fax|ref|po\s*#|pu\s*#)/i.test(line)) continue;
+    result.facility = line;
+    break;
+  }
+
+  return result;
+}
+
+/**
+ * Main text extraction function — pure regex/heuristic, no external API.
+ */
+function extractRateCon(text) {
+  const flags = []; // fields with uncertainty
+  const result = {};
+
+  // ---- Load / Reference Numbers ----
+  const loadNumMatch = text.match(/(?:load\s*(?:number|num|#|id|ref(?:erence)?)|shipment\s*(?:number|#|id)|order\s*(?:number|#|id))[\s:\-]*([A-Z0-9\-]{3,20})/i);
+  if (loadNumMatch) result.load_number = loadNumMatch[1].trim();
+
+  const poMatch = text.match(/(?:po\s*(?:number|num|#)|purchase\s*order(?:\s*#)?)[\s:\-]*([A-Z0-9\-]{3,20})/i);
+  if (poMatch) result.po_number = poMatch[1].trim();
+
+  const bolMatch = text.match(/(?:bol(?:\s*(?:number|num|#))?|bill\s*of\s*lading(?:\s*#)?)[\s:\-]*([A-Z0-9\-]{3,20})/i);
+  if (bolMatch) result.bol_number = bolMatch[1].trim();
+
+  // ---- Broker / Customer ----
+  const brokerMatch = text.match(/(?:broker|company|carrier\s*pay(?:able)?\s*to|billed?\s*to|logistics|transport(?:ation)?)[\s:\-]+([A-Za-z][A-Za-z0-9\s,.'&-]{2,60})/i);
+  if (brokerMatch) {
+    const cname = brokerMatch[1].split('\n')[0].trim();
+    if (cname.length >= 3) result.customer_name = cname;
+  }
+
+  // ---- Commodity / Equipment ----
+  const commodMatch = text.match(/(?:commodity|freight|product|cargo|goods|shipment\s*desc(?:ription)?)[\s:\-]*([^\n]{2,80})/i);
+  if (commodMatch) result.commodity = commodMatch[1].split(/[\|,]/)[0].trim();
+
+  const weightMatch = text.match(/(?:weight|wt\.?)[\s:\-]*(\d[\d,]*)\s*(?:lbs?|pounds?|kg)?/i);
+  if (weightMatch) result.weight = parseFloat(weightMatch[1].replace(/,/g,''));
+
+  const equipMatch = text.match(/(?:equipment|trailer\s*type|mode|trailer)[\s:\-]*([^\n]{2,40})/i);
+  if (equipMatch) result.equipment_type = equipMatch[1].trim();
+
+  // ---- Rate ----
+  const { value: rateVal, ambiguous: rateAmbig } = extractRate(text);
+  if (rateVal !== null) {
+    result.rate = rateVal;
+    if (rateAmbig) flags.push({ field: 'rate', message: 'Multiple dollar amounts found — verify the carrier rate is correct.' });
+  } else {
+    flags.push({ field: 'rate', message: 'Could not identify the carrier rate — please enter it manually.' });
+  }
+
+  // ---- Detect pickup & delivery blocks ----
+  // Split text around pickup and delivery section headers
+  const puHeaderRe = /(?:^|\n)[\s]*(?:PICK\s*UP|PICKUP|ORIGIN|SHIP\s*FROM|PU|LOAD(?:ING)?\s*POINT|FROM)[\s:\-]*/im;
+  const delHeaderRe = /(?:^|\n)[\s]*(?:DELIVER(?:Y)?|DROP\s*OFF|DESTINATION|CONSIGNEE|SHIP\s*TO|DO|DELIVER\s*TO|UNLOADING\s*POINT|TO)[\s:\-]*/im;
+
+  const puMatch = text.match(puHeaderRe);
+  const delMatch = text.match(delHeaderRe);
+
+  let puBlock = '';
+  let delBlock = '';
+
+  if (puMatch && delMatch) {
+    const puIdx = puMatch.index + puMatch[0].length;
+    const delIdx = delMatch.index + delMatch[0].length;
+    if (puIdx < delIdx) {
+      puBlock = text.slice(puIdx, delMatch.index);
+      delBlock = text.slice(delIdx, delIdx + 600);
+    } else {
+      delBlock = text.slice(delIdx, puMatch.index);
+      puBlock = text.slice(puIdx, puIdx + 600);
+    }
+  } else if (puMatch) {
+    puBlock = text.slice(puMatch.index + puMatch[0].length, puMatch.index + puMatch[0].length + 600);
+  } else if (delMatch) {
+    delBlock = text.slice(delMatch.index + delMatch[0].length, delMatch.index + delMatch[0].length + 600);
+  }
+
+  if (puBlock) {
+    const pu = parseStopBlock(puBlock);
+    if (pu.facility) result.pickup_facility = pu.facility;
+    if (pu.address) result.origin_address = pu.address;
+    if (pu.city) result.origin_city = pu.city;
+    if (pu.state) result.origin_state = pu.state;
+    if (pu.zip) result.origin_zip = pu.zip;
+    if (pu.date) result.pickup_date = pu.date;
+    else flags.push({ field: 'pickup_date', message: 'Pickup date not clearly identified — please enter it manually.' });
+    if (pu.time) result.pickup_time = pu.time;
+    if (pu.ref) result.pickup_ref = pu.ref;
+  }
+
+  if (delBlock) {
+    const del = parseStopBlock(delBlock);
+    if (del.facility) result.delivery_facility = del.facility;
+    if (del.address) result.destination_address = del.address;
+    if (del.city) result.destination_city = del.city;
+    if (del.state) result.destination_state = del.state;
+    if (del.zip) result.destination_zip = del.zip;
+    if (del.date) result.delivery_date = del.date;
+    else flags.push({ field: 'delivery_date', message: 'Delivery date not clearly identified — please enter it manually.' });
+    if (del.time) result.delivery_time = del.time;
+    if (del.ref) result.delivery_ref = del.ref;
+  }
+
+  // ---- Special instructions / notes ----
+  const notesMatch = text.match(/(?:special\s*instructions?|notes?|comments?|remarks?)[\s:\-]*([^\n]{5,400})/i);
+  if (notesMatch) result.notes = notesMatch[1].trim();
+
+  // ---- Broker contact info for notes ----
+  const emailMatch = text.match(/\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/);
+  if (emailMatch) result.broker_email = emailMatch[1];
+
+  return { extracted: result, flags };
+}
+
+// POST /api/extract/paste-rate-con
+router.post('/paste-rate-con', async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text || typeof text !== 'string' || text.trim().length < 20) {
+      return res.status(400).json({ error: 'Text is too short or empty. Paste the full Rate Confirmation text.' });
+    }
+    if (text.length > 500000) {
+      return res.status(400).json({ error: 'Pasted text is too large. Please paste only the Rate Confirmation section.' });
+    }
+
+    const { extracted, flags } = extractRateCon(text);
+
+    // Duplicate check — look for existing load with same load_number
+    let duplicate = null;
+    if (extracted.load_number) {
+      const dup = await db.query(
+        `SELECT l.id, l.load_number, l.pickup_date, l.status, c.name as customer_name
+         FROM loads l LEFT JOIN customers c ON c.id=l.customer_id
+         WHERE LOWER(l.load_number) = LOWER($1) LIMIT 1`,
+        [extracted.load_number]
+      );
+      if (dup.rows.length) duplicate = dup.rows[0];
+    }
+
+    res.json({ extracted, flags, duplicate });
+  } catch (err) {
+    console.error('Paste rate con error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
+
