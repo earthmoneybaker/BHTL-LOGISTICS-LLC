@@ -25,6 +25,10 @@ import Import from './pages/Import/index';
 import ExtractLoad from './pages/ExtractLoad/index';
 import OtherRevenue from './pages/OtherRevenue/index';
 import Settlements from './pages/Settlements/index';
+import Reports from './pages/Reports/index';
+import LiveStats from './pages/LiveStats/index';
+import TodoList from './pages/TodoList/index';
+import Deductions from './pages/Deductions/index';
 
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading, isAdmin } = useAuth();
@@ -62,6 +66,10 @@ function AppRoutes() {
       <Route path="/payroll" element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
       <Route path="/pnl" element={<ProtectedRoute adminOnly><PnL /></ProtectedRoute>} />
       <Route path="/settlements" element={<ProtectedRoute adminOnly><Settlements /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute adminOnly><Reports /></ProtectedRoute>} />
+      <Route path="/live-stats" element={<ProtectedRoute><LiveStats /></ProtectedRoute>} />
+      <Route path="/todos" element={<ProtectedRoute><TodoList /></ProtectedRoute>} />
+      <Route path="/deductions" element={<ProtectedRoute adminOnly><Deductions /></ProtectedRoute>} />
       <Route path="/fuel" element={<ProtectedRoute><Fuel /></ProtectedRoute>} />
       <Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute adminOnly><Users /></ProtectedRoute>} />

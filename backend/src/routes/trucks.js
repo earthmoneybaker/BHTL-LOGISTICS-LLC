@@ -102,4 +102,59 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// ── GET /api/trucks/:id/drivers — get all drivers on a truck ──────────
+router.get('/:id/drivers', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT td.*, d.first_name, d.last_name, d.phone, d.pay_type, d.pay_rate, d.cdl_number
+       FROM truck_drivers td
+       JOIN drivers d ON d.id = td.driver_id
+       WHERE td.truck_id = $1 AND td.is_active = TRUE
+       ORDER BY td.role ASC, d.last_name ASC`,
+      [req.params.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/trucks/:id/drivers — assign a co/team driver ────────────
+router.post('/:id/drivers', async (req, res) => {
+  const { driver_id, role, start_date } = req.body;
+  if (!driver_id) return res.status(400).json({ error: 'driver_id required' });
+  try {
+    // Check if already assigned
+    const existing = await db.query(
+      'SELECT id FROM truck_drivers WHERE truck_id=$1 AND driver_id=$2 AND is_active=TRUE',
+      [req.params.id, driver_id]
+    );
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: 'Driver already assigned to this truck' });
+    }
+    const result = await db.query(
+      `INSERT INTO truck_drivers (truck_id, driver_id, role, start_date)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [req.params.id, driver_id, role || 'co-driver', start_date || null]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── DELETE /api/trucks/:id/drivers/:driverId — remove co-driver ───────
+router.delete('/:id/drivers/:driverId', async (req, res) => {
+  try {
+    await db.query(
+      'UPDATE truck_drivers SET is_active=FALSE WHERE truck_id=$1 AND driver_id=$2',
+      [req.params.id, req.params.driverId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
+

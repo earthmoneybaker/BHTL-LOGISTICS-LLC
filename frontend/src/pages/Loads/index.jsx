@@ -217,7 +217,7 @@ export default function Loads() {
   const someSelected = selected.size > 0;
 
   return (
-    <div>
+    <div data-bhtl-version="2">
       <PageHeader
         title="Load Management"
         subtitle={`${loads.length} loads`}

@@ -1,11 +1,149 @@
-import { FaTractor, FaTrash, FaWrench, FaTruck, FaCheck, FaEdit, FaEye } from 'react-icons/fa';
+import { FaTractor, FaTrash, FaWrench, FaTruck, FaCheck, FaEdit, FaEye, FaPlus, FaUserFriends, FaTimes } from 'react-icons/fa';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client';
 import { Spinner, EmptyState, PageHeader, Modal, formatDate, ExpirationBadge, ConfirmModal } from '../../components/ui';
 import toast from 'react-hot-toast';
 
+// ── Team Drivers Panel (shown inside truck modal) ──────────────────────
+function TeamDriversPanel({ truckId, allDrivers }) {
+  const [teamDrivers, setTeamDrivers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [addDriverId, setAddDriverId] = useState('');
+  const [addRole, setAddRole] = useState('co-driver');
+  const [adding, setAdding] = useState(false);
+
+  const loadTeam = useCallback(async () => {
+    if (!truckId) return;
+    setLoading(true);
+    try {
+      const res = await api.get(`/trucks/${truckId}/drivers`);
+      setTeamDrivers(res.data);
+    } catch {}
+    finally { setLoading(false); }
+  }, [truckId]);
+
+  useEffect(() => { loadTeam(); }, [loadTeam]);
+
+  const handleAdd = async () => {
+    if (!addDriverId) { toast.error('Select a driver'); return; }
+    setAdding(true);
+    try {
+      await api.post(`/trucks/${truckId}/drivers`, { driver_id: addDriverId, role: addRole });
+      toast.success('Driver added to truck');
+      setAddDriverId('');
+      loadTeam();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed');
+    } finally { setAdding(false); }
+  };
+
+  const handleRemove = async (driverId, name) => {
+    if (!window.confirm(`Remove ${name} from this truck?`)) return;
+    try {
+      await api.delete(`/trucks/${truckId}/drivers/${driverId}`);
+      toast.success('Driver removed');
+      loadTeam();
+    } catch { toast.error('Failed'); }
+  };
+
+  const availableDrivers = allDrivers.filter(d =>
+    !teamDrivers.some(td => td.driver_id === d.id)
+  );
+
+  return (
+    <div style={{ marginTop: 20, borderTop: '1px solid var(--border-color)', paddingTop: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <FaUserFriends style={{ color: 'var(--brand-blue-light)' }} />
+        <span style={{ fontWeight: 700, fontSize: 14 }}>Team / Co-Drivers</span>
+        {loading && <Spinner />}
+      </div>
+
+      {teamDrivers.length > 0 ? (
+        <div style={{ marginBottom: 12 }}>
+          {teamDrivers.map(td => (
+            <div key={td.driver_id} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '8px 12px', background: 'rgba(255,255,255,0.04)',
+              borderRadius: 8, marginBottom: 6, border: '1px solid var(--border-subtle)',
+            }}>
+              <div>
+                <span style={{ fontWeight: 600, fontSize: 14 }}>{td.first_name} {td.last_name}</span>
+                <span style={{ marginLeft: 10, fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'rgba(59,130,246,0.15)', color: 'var(--brand-blue-light)' }}>
+                  {td.role}
+                </span>
+                {td.pay_rate && (
+                  <span style={{ marginLeft: 8, fontSize: 12, color: 'var(--text-muted)' }}>
+                    {td.pay_type === 'percentage' ? `${td.pay_rate}%` : `$${td.pay_rate}/mi`}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => handleRemove(td.driver_id, `${td.first_name} ${td.last_name}`)}
+                style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '4px 8px' }}
+                title="Remove from truck"
+              >
+                <FaTimes />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>No co-drivers assigned yet</div>
+      )}
+
+      {availableDrivers.length > 0 && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <select
+            className="form-control"
+            value={addDriverId}
+            onChange={e => setAddDriverId(e.target.value)}
+            style={{ flex: 2, fontSize: 13 }}
+          >
+            <option value="">Select driver to add...</option>
+            {availableDrivers.map(d => (
+              <option key={d.id} value={d.id}>{d.first_name} {d.last_name}</option>
+            ))}
+          </select>
+          <select
+            className="form-control"
+            value={addRole}
+            onChange={e => setAddRole(e.target.value)}
+            style={{ flex: 1, fontSize: 13 }}
+          >
+            <option value="co-driver">Co-Driver</option>
+            <option value="primary">Primary</option>
+            <option value="relief">Relief</option>
+          </select>
+          <button onClick={handleAdd} disabled={adding} className="btn btn-primary" style={{ whiteSpace: 'nowrap', padding: '8px 14px' }}>
+            <FaPlus /> Add
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Small cell that shows team drivers for a truck row in the table
+function TruckTeamCell({ truckId }) {
+  const [drivers, setDrivers] = useState([]);
+  useEffect(() => {
+    api.get(`/trucks/${truckId}/drivers`).then(r => setDrivers(r.data)).catch(() => {});
+  }, [truckId]);
+  if (drivers.length === 0) return <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>;
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+      {drivers.map(d => (
+        <span key={d.driver_id} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'rgba(59,130,246,0.15)', color: 'var(--brand-blue-light)', whiteSpace: 'nowrap' }}>
+          {d.first_name} {d.last_name}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 const defaultTruck = {
+
   unit_number: '', vin: '', plate_number: '', plate_state: 'OH', year: '', make: '', model: '',
   registration_expiration: '', irp_status: '', irp_expiration: '', current_mileage: '',
   assigned_driver_id: '', status: 'active', notes: '',
@@ -131,7 +269,7 @@ export default function Fleet() {
             <div className="card" style={{ padding: 0 }}>
               <div className="table-wrapper">
                 <table className="data-table">
-                  <thead><tr><th>Unit #</th><th>Year/Make/Model</th><th>VIN</th><th>Plate</th><th>Reg. Exp.</th><th>IRP Exp.</th><th>Assigned Driver</th><th>Status</th><th>Actions</th></tr></thead>
+                  <thead><tr><th>Unit #</th><th>Year/Make/Model</th><th>VIN</th><th>Plate</th><th>Reg. Exp.</th><th>IRP Exp.</th><th>Primary Driver</th><th>Co-Drivers</th><th>Status</th><th>Actions</th></tr></thead>
                   <tbody>
                     {trucks.length === 0 ? <tr><td colSpan={9}><EmptyState icon={<FaTruck />} title="No trucks" /></td></tr>
                       : trucks.map(t => (
@@ -143,6 +281,9 @@ export default function Fleet() {
                         <td><span className={getExpClass(t.registration_expiration)}>{formatDate(t.registration_expiration)}</span></td>
                         <td><span className={getExpClass(t.irp_expiration)}>{formatDate(t.irp_expiration)}</span></td>
                         <td className="muted">{t.first_name ? `${t.first_name} ${t.last_name}` : '—'}</td>
+                        <td>
+                          <TruckTeamCell truckId={t.id} />
+                        </td>
                         <td><span className={`badge badge-${t.status}`}>{t.status.replace(/_/g,' ')}</span></td>
                         <td>
                           <div className="flex gap-8">
@@ -261,6 +402,10 @@ export default function Fleet() {
             </div>
             <div className="form-group" style={{ gridColumn:'1/-1' }}><label className="form-label">Notes</label><textarea className="form-control" value={truckForm.notes} onChange={tf('notes')} rows={2} /></div>
           </div>
+          {/* Team Drivers Panel — only shown when editing an existing truck */}
+          {editingTruck && (
+            <TeamDriversPanel truckId={editingTruck.id} allDrivers={drivers} />
+          )}
         </Modal>
       )}
 

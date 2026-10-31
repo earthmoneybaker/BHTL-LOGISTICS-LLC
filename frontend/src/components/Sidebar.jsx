@@ -1,11 +1,17 @@
-import { FaTruck, FaGasPump, FaChartBar, FaClipboardList, FaFileAlt, FaCreditCard, FaBox, FaMoneyBillWave, FaChartLine, FaDollarSign, FaUsers, FaCar, FaHandshake, FaCog, FaFileImport, FaSignOutAlt, FaFileInvoiceDollar } from 'react-icons/fa';
+import {
+  FaTruck, FaGasPump, FaChartBar, FaClipboardList, FaFileAlt, FaCreditCard,
+  FaBox, FaMoneyBillWave, FaChartLine, FaDollarSign, FaUsers, FaCar, FaHandshake,
+  FaCog, FaFileImport, FaSignOutAlt, FaFileInvoiceDollar, FaBolt, FaTasks, FaMinusCircle
+} from 'react-icons/fa';
 import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const NAV_ITEMS = [
-  { section: 'OVERVIEW', items: [
+  { section: 'COMMAND CENTER', items: [
+    { to: '/live-stats', label: '⚡ Live Stats', icon: <FaBolt /> },
     { to: '/', label: 'Dashboard', icon: <FaChartBar /> },
+    { to: '/todos', label: 'To-Do & Reminders', icon: <FaTasks /> },
   ]},
   { section: 'OPERATIONS', items: [
     { to: '/loads', label: 'Load Management', icon: <FaBox /> },
@@ -23,11 +29,13 @@ const NAV_ITEMS = [
     { to: '/expenses', label: 'Expenses', icon: <FaCreditCard /> },
     { to: '/payroll', label: 'Payroll', icon: <FaMoneyBillWave /> },
     { to: '/settlements', label: 'Settlements', icon: <FaFileInvoiceDollar />, adminOnly: true },
+    { to: '/reports', label: 'Weekly Reports', icon: <FaFileAlt />, adminOnly: true },
     { to: '/pnl', label: 'Profit & Loss', icon: <FaChartLine />, adminOnly: true },
     { to: '/fuel', label: 'Fuel & IFTA', icon: <FaGasPump /> },
   ]},
   { section: 'ADMIN', items: [
     { to: '/users', label: 'User Management', icon: <FaUsers />, adminOnly: true },
+    { to: '/deductions', label: 'Deduction Settings', icon: <FaMinusCircle />, adminOnly: true },
     { to: '/settings', label: 'Settings', icon: <FaCog />, adminOnly: true },
     { to: '/import', label: 'Bulk Import', icon: <FaFileImport />, adminOnly: true },
   ]},

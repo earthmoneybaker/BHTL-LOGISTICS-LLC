@@ -27,7 +27,8 @@ export function ExpirationBadge({ date, label }) {
 }
 
 // Simple confirmation dialog
-export function ConfirmModal({ title, message, onConfirm, onCancel, danger = true, confirmLabel = 'Confirm' }) {
+export function ConfirmModal({ open, title, message, onConfirm, onCancel, danger = true, confirmLabel = 'Confirm' }) {
+  if (!open) return null;
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
@@ -71,20 +72,22 @@ export function EmptyState({ icon = <FaInbox />, title = 'No data found', descri
 }
 
 // Page header
-export function PageHeader({ title, subtitle, actions }) {
+export function PageHeader({ title, subtitle, actions, action }) {
+  const actionContent = action || actions;
   return (
     <div className="page-header">
       <div>
         <h1 className="page-title">{title}</h1>
         {subtitle && <div className="page-subtitle">{subtitle}</div>}
       </div>
-      {actions && <div className="flex gap-8 flex-wrap">{actions}</div>}
+      {actionContent && <div className="flex gap-8 flex-wrap">{actionContent}</div>}
     </div>
   );
 }
 
 // Modal wrapper
-export function Modal({ title, onClose, children, footer, size = '' }) {
+export function Modal({ open, title, onClose, children, footer, size = '' }) {
+  if (open === false) return null;
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className={`modal ${size}`} onClick={e => e.stopPropagation()}>

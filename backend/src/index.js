@@ -57,6 +57,10 @@ app.use('/api/import', require('./routes/import'));
 app.use('/api/extract', require('./routes/extract'));
 app.use('/api/other-revenue', require('./routes/otherRevenue'));
 app.use('/api/settlements', require('./routes/settlements'));
+app.use('/api/reports', require('./routes/reports'));
+app.use('/api/todos', require('./routes/todos'));
+app.use('/api/deductions', require('./routes/deductions'));
+app.use('/api/live-stats', require('./routes/liveStats'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
@@ -76,6 +80,16 @@ async function initDb() {
     const schema = fs.readFileSync(path.join(__dirname, 'db/schema.sql'), 'utf8');
     await db.exec(schema);
     console.log('✅ Database schema applied');
+
+    // Apply reports/todos/team-drivers migration
+    try {
+      const migration = fs.readFileSync(path.join(__dirname, 'db/reports_migration.sql'), 'utf8');
+      await db.exec(migration);
+      console.log('✅ Reports migration applied');
+    } catch (migErr) {
+      // May already be applied — log but don't crash
+      console.warn('⚠️  Reports migration:', migErr.message.slice(0, 120));
+    }
 
     // Seed default admin if no users exist
     const userCheck = await db.query('SELECT COUNT(*) FROM users');
