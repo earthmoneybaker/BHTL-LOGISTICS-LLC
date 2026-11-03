@@ -44,9 +44,29 @@ function normalizeTime(t) {
 
 function formatDeliveryInfo(load) {
   if (!load.delivery_date) return null;
-  const dateStr = new Date(load.delivery_date + 'T12:00:00').toLocaleDateString('en-US', {
+
+  // Normalize: handle JS Date object, YYYY-MM-DD string, or ISO timestamp
+  let rawDate = load.delivery_date;
+  let dateObj;
+  if (rawDate instanceof Date) {
+    // pg returned a Date object — use UTC to get stored date
+    const y = rawDate.getUTCFullYear();
+    const m = String(rawDate.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(rawDate.getUTCDate()).padStart(2, '0');
+    rawDate = `${y}-${m}-${d}`;
+  } else if (typeof rawDate === 'string' && rawDate.length > 10) {
+    // ISO timestamp like "2026-11-03T00:00:00.000Z" — take only date part
+    rawDate = rawDate.slice(0, 10);
+  }
+
+  // Parse at local noon to avoid timezone shift
+  dateObj = new Date(rawDate + 'T12:00:00');
+  if (isNaN(dateObj.getTime())) return null;
+
+  const dateStr = dateObj.toLocaleDateString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric',
   });
+
   const rawTime = load.delivery_time;
   const hhmm = normalizeTime(rawTime);
   const timeStr = hhmm
