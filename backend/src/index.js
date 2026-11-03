@@ -87,8 +87,22 @@ async function initDb() {
       await db.exec(migration);
       console.log('✅ Reports migration applied');
     } catch (migErr) {
-      // May already be applied — log but don't crash
-      console.warn('⚠️  Reports migration:', migErr.message.slice(0, 120));
+      // ON CONFLICT errors mean data already seeded — this is expected on restarts
+      if (!migErr.message.includes('ON CONFLICT') && !migErr.message.includes('already exists')) {
+        console.warn('⚠️  Reports migration:', migErr.message.slice(0, 120));
+      }
+    }
+
+    // Apply settings/deductions columns migration
+    try {
+      const settingsMig = fs.readFileSync(path.join(__dirname, 'db/settings_deductions_migration.sql'), 'utf8');
+      await db.exec(settingsMig);
+      console.log('✅ Settings migration applied');
+    } catch (migErr) {
+      // Columns may already exist — safe to ignore
+      if (!migErr.message.includes('already exists')) {
+        console.warn('⚠️  Settings migration:', migErr.message.slice(0, 120));
+      }
     }
 
     // Seed default admin if no users exist

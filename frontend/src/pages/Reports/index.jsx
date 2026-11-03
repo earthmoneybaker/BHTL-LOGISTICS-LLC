@@ -2,7 +2,7 @@ import {
   FaFileAlt, FaPlus, FaCalculator, FaTrash, FaEye, FaWhatsapp,
   FaCheck, FaChevronLeft, FaPrint, FaTimes, FaEdit, FaToggleOn, FaToggleOff,
   FaGasPump, FaTruck, FaUser, FaDollarSign, FaMinus, FaDownload,
-  FaFilter, FaCalendarWeek, FaListUl, FaCog
+  FaFilter, FaCalendarWeek, FaListUl, FaCog, FaFilePdf, FaShare
 } from 'react-icons/fa';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../../api/client';
@@ -10,6 +10,7 @@ import {
   Spinner, EmptyState, PageHeader, Modal, formatCurrency, formatDate, ConfirmModal
 } from '../../components/ui';
 import toast from 'react-hot-toast';
+import { downloadReportPDF, shareReportViaWhatsApp } from '../../utils/reportPDF';
 
 // ── Utility ───────────────────────────────────────────────────────────
 function getMondayOfWeek(date = new Date()) {
@@ -31,46 +32,60 @@ const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US',
 
 // ── Report Print View ──────────────────────────────────────────────────
 function ReportPrintView({ report, loadItems }) {
-  const customDed = Array.isArray(report.custom_deductions) ? report.custom_deductions : [];
+  const customDed = Array.isArray(report.custom_deductions)
+    ? report.custom_deductions
+    : (typeof report.custom_deductions === 'string'
+        ? JSON.parse(report.custom_deductions || '[]') : []);
 
-  const whatsappText = () => {
-    const lines = [
-      `📋 WEEKLY REPORT — ${fmtDate(report.period_start)} to ${fmtDate(report.period_end)}`,
-      report.truck_unit ? `🚛 Truck: ${report.truck_unit}` : '',
-      report.driver_first ? `👤 Driver: ${report.driver_first} ${report.driver_last}` : '',
-      ``,
-      `📦 LOADS (${loadItems.filter(l => l.included).length}):`,
-      ...loadItems.filter(l => l.included).map(l =>
-        `  • ${l.load_number} | ${l.origin} → ${l.destination} | ${fmt(l.load_rate)}`
-      ),
-      ``,
-      `💰 REVENUE SUMMARY:`,
-      `  Gross Revenue: ${fmt(report.gross_revenue)}`,
-      `  Fuel Cost: -${fmt(report.fuel_cost)}`,
-      `  ELD Fee: -${fmt(report.eld_fee)}`,
-      `  Dispatch Fee (4%): -${fmt(report.dispatch_fee)}`,
-      `  Insurance: -${fmt(report.insurance_fee)}`,
-      `  Trailer Payment: -${fmt(report.trailer_payment)}`,
-      `  Office Authority (12%): -${fmt(report.office_authority_fee)}`,
-      `  Driver Salary: -${fmt(report.driver_salary)}`,
-      ...customDed.map(d => `  ${d.name}: -${fmt(d.amount)}`),
-      `  ─────────────────────`,
-      `  NET REVENUE: ${fmt(report.net_revenue)}`,
-      ``,
-      `Report #: ${report.report_number}`,
-    ].filter(l => l !== undefined && !(l === '' || l.trim() === '') || l === '');
+  const [generating, setGenerating] = useState(false);
 
-    return encodeURIComponent(lines.join('\n'));
+  const handleDownloadPDF = async () => {
+    setGenerating(true);
+    try {
+      const filename = await downloadReportPDF(report, loadItems);
+      toast.success(`PDF downloaded: ${filename}`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to generate PDF');
+    } finally {
+      setGenerating(false);
+    }
   };
 
-  const handleWhatsApp = () => {
-    const text = whatsappText();
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+  const handleWhatsApp = async () => {
+    setGenerating(true);
+    try {
+      const result = await shareReportViaWhatsApp(report, loadItems);
+      if (result.method === 'native_share') {
+        toast.success('Report shared via WhatsApp!');
+      } else if (result.method === 'download_then_whatsapp') {
+        toast.success('PDF downloaded! Attach it to your WhatsApp message.', { duration: 5000 });
+      } else if (result.method === 'cancelled') {
+        // User cancelled the share sheet — no toast needed
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to generate PDF');
+    } finally {
+      setGenerating(false);
+    }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    // Generate PDF and open in new tab for printing
+    setGenerating(true);
+    try {
+      const { generateReportPDF } = await import('../../utils/reportPDF');
+      const doc = await generateReportPDF(report, loadItems);
+      const pdfUrl = doc.output('bloburl');
+      window.open(pdfUrl, '_blank');
+    } catch {
+      window.print();
+    } finally {
+      setGenerating(false);
+    }
   };
+
 
   return (
     <div className="report-print-view">
@@ -217,17 +232,54 @@ function ReportPrintView({ report, loadItems }) {
       </div>
 
       {/* Action Buttons */}
-      <div style={{ display: 'flex', gap: 12, marginTop: 20, justifyContent: 'flex-end' }} className="no-print">
-        <button onClick={handlePrint} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <FaPrint /> Print Report
+      <div style={{ display: 'flex', gap: 10, marginTop: 20, justifyContent: 'flex-end', flexWrap: 'wrap' }} className="no-print">
+        {/* PDF info badge */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6, padding: '0 12px',
+          background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)',
+          borderRadius: 8, fontSize: 12, color: 'var(--brand-orange)',
+        }}>
+          <FaFilePdf /> Branded PDF with BHTL logo
+        </div>
+
+        <button
+          onClick={handlePrint}
+          disabled={generating}
+          className="btn btn-secondary"
+          style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+        >
+          {generating ? <Spinner size={14} inline /> : <FaPrint />}
+          Open PDF
         </button>
-        <button onClick={handleWhatsApp} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#25D366', borderColor: '#25D366' }}>
-          <FaWhatsapp /> Send via WhatsApp
+
+        <button
+          onClick={handleDownloadPDF}
+          disabled={generating}
+          className="btn btn-secondary"
+          style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+        >
+          {generating ? <Spinner size={14} inline /> : <FaDownload />}
+          Download PDF
+        </button>
+
+        <button
+          onClick={handleWhatsApp}
+          disabled={generating}
+          className="btn btn-primary"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: '#25D366', borderColor: '#25D366',
+            boxShadow: '0 0 16px rgba(37,211,102,0.3)',
+          }}
+        >
+          {generating ? <Spinner size={14} inline /> : <FaWhatsapp />}
+          {generating ? 'Generating PDF...' : 'Send PDF via WhatsApp'}
         </button>
       </div>
     </div>
   );
 }
+
 
 // ── Report Form (Create / Edit) ───────────────────────────────────────
 function ReportForm({ onSaved, onClose, trucks, drivers, editingReport, editingLoadItems }) {
@@ -691,11 +743,40 @@ export default function Reports() {
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => openView(r.id)} className="btn btn-secondary btn-sm" title="View"><FaEye /></button>
+                        <button onClick={() => openView(r.id)} className="btn btn-secondary btn-sm" title="View Report"><FaEye /></button>
                         <button onClick={() => openEdit(r)} className="btn btn-secondary btn-sm" title="Edit"><FaEdit /></button>
+                        <button
+                          onClick={async () => {
+                            const res = await api.get(`/reports/${r.id}`);
+                            toast.promise(
+                              downloadReportPDF(res.data.report, res.data.load_items),
+                              { loading: 'Generating PDF…', success: 'PDF downloaded!', error: 'Failed' }
+                            );
+                          }}
+                          className="btn btn-secondary btn-sm"
+                          title="Download PDF"
+                          style={{ color: 'var(--brand-orange)' }}
+                        >
+                          <FaFilePdf />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            const res = await api.get(`/reports/${r.id}`);
+                            toast.promise(
+                              shareReportViaWhatsApp(res.data.report, res.data.load_items),
+                              { loading: 'Generating PDF…', success: 'PDF ready!', error: 'Failed' }
+                            );
+                          }}
+                          className="btn btn-sm"
+                          title="Send PDF via WhatsApp"
+                          style={{ background: '#25D366', border: 'none', color: '#fff', borderRadius: 6, padding: '4px 8px', cursor: 'pointer' }}
+                        >
+                          <FaWhatsapp />
+                        </button>
                         <button onClick={() => setDeleteTarget(r.id)} className="btn btn-danger btn-sm" title="Delete"><FaTrash /></button>
                       </div>
                     </td>
+
                   </tr>
                 ))}
               </tbody>

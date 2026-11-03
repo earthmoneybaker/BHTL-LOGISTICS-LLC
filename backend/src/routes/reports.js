@@ -109,9 +109,22 @@ async function calculateReport(truck_id, driver_id, period_start, period_end, ex
     .filter(l => l.included)
     .reduce((sum, l) => sum + (l.driver_pay || 0), 0);
 
-  // Calculate deductions from templates
+  // Get company settings for deduction defaults (fall back to hardcoded defaults)
+  let settingsRow = { eld_fee_weekly: 35, insurance_monthly: 2000, trailer_payment_monthly: 600, dispatch_fee_pct: 4, office_authority_pct: 12 };
+  try {
+    const settingsQ = await db.query('SELECT * FROM company_settings LIMIT 1');
+    if (settingsQ.rows[0]) settingsRow = { ...settingsRow, ...settingsQ.rows[0] };
+  } catch (_) {}
+
+  const eldDefault    = parseFloat(settingsRow.eld_fee_weekly) || 35;
+  const insurDefault  = (parseFloat(settingsRow.insurance_monthly) || 2000) / 4;
+  const trailerDefault = (parseFloat(settingsRow.trailer_payment_monthly) || 600) / 4;
+  const dispatchPct   = (parseFloat(settingsRow.dispatch_fee_pct) || 4) / 100;
+  const authorityPct  = (parseFloat(settingsRow.office_authority_pct) || 12) / 100;
+
+  // Calculate deductions: use company settings, override with deduction templates if configured
   const templates = await getDeductionTemplates();
-  let eld_fee = 0, dispatch_fee = 0, insurance_fee = 0, trailer_payment = 0, office_authority_fee = 0;
+  let eld_fee = eldDefault, dispatch_fee = 0, insurance_fee = insurDefault, trailer_payment = trailerDefault, office_authority_fee = 0;
 
   for (const tpl of templates) {
     if (tpl.deduction_type === 'fixed_weekly') {
@@ -126,6 +139,10 @@ async function calculateReport(truck_id, driver_id, period_start, period_end, ex
       else if (tpl.name.toLowerCase().includes('office') || tpl.name.toLowerCase().includes('authority')) office_authority_fee = fee;
     }
   }
+
+  // If no dispatch/authority template found, apply from settings
+  if (dispatch_fee === 0) dispatch_fee = Math.round(gross_revenue * dispatchPct * 100) / 100;
+  if (office_authority_fee === 0) office_authority_fee = Math.round(gross_revenue * authorityPct * 100) / 100;
 
   const total_deductions = fuel_cost + eld_fee + dispatch_fee + insurance_fee + trailer_payment + driver_salary + office_authority_fee;
   const net_revenue = gross_revenue - total_deductions;

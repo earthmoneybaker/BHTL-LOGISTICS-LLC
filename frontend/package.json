@@ -12,6 +12,8 @@
   "dependencies": {
     "@tanstack/react-table": "^9.1.2",
     "axios": "^1.19.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "pdfjs-dist": "^6.2.108",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

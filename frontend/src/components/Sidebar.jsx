@@ -53,10 +53,19 @@ export default function Sidebar({ open, onClose }) {
         />
       )}
       <nav className={`sidebar ${open ? 'open' : ''}`}>
-        <div className="sidebar-logo">
-          <div className="company-name">BHTL Logistics LLC</div>
-          <div className="company-tagline">Safety • Reliability • On Time</div>
-          <div className="dot-mc">Dayton, Ohio</div>
+        <div className="sidebar-logo" style={{ padding: '12px 16px 10px', borderBottom: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img
+              src="/bhtl-logo.png"
+              alt="BHTL Logistics LLC"
+              style={{ width: 52, height: 52, objectFit: 'contain', borderRadius: 8, background: '#000', padding: 2 }}
+            />
+            <div>
+              <div className="company-name" style={{ fontSize: 13, lineHeight: 1.2 }}>BHTL Logistics LLC</div>
+              <div className="company-tagline" style={{ fontSize: 10 }}>Safety • Reliability • On Time</div>
+              <div className="dot-mc" style={{ fontSize: 10 }}>Dayton, Ohio</div>
+            </div>
+          </div>
         </div>
 
         <div className="sidebar-nav">

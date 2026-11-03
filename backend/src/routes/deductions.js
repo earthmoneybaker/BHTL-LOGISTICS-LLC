@@ -19,13 +19,13 @@ router.get('/', async (req, res) => {
 
 // ── POST /api/deductions ──────────────────────────────────────────────
 router.post('/', requireAdmin, async (req, res) => {
-  const { name, description, deduction_type, amount, percentage, applies_to, sort_order } = req.body;
+  const { name, description, deduction_type, amount, percentage, applies_to, sort_order, frequency } = req.body;
   if (!name || !deduction_type) return res.status(400).json({ error: 'name and deduction_type required' });
   try {
     const result = await db.query(
-      `INSERT INTO deduction_templates (name, description, deduction_type, amount, percentage, applies_to, sort_order)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [name, description, deduction_type, amount || null, percentage || null, applies_to || 'truck', sort_order || 0]
+      `INSERT INTO deduction_templates (name, description, deduction_type, amount, percentage, applies_to, sort_order, frequency)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [name, description, deduction_type, amount || null, percentage || null, applies_to || 'truck', sort_order || 0, frequency || 'weekly']
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -35,15 +35,15 @@ router.post('/', requireAdmin, async (req, res) => {
 
 // ── PUT /api/deductions/:id ────────────────────────────────────────────
 router.put('/:id', requireAdmin, async (req, res) => {
-  const { name, description, deduction_type, amount, percentage, applies_to, is_active, sort_order } = req.body;
+  const { name, description, deduction_type, amount, percentage, applies_to, is_active, sort_order, frequency } = req.body;
   try {
     const result = await db.query(
       `UPDATE deduction_templates SET
          name=$1, description=$2, deduction_type=$3, amount=$4, percentage=$5,
-         applies_to=$6, is_active=$7, sort_order=$8, updated_at=NOW()
-       WHERE id=$9 RETURNING *`,
+         applies_to=$6, is_active=$7, sort_order=$8, frequency=$9, updated_at=NOW()
+       WHERE id=$10 RETURNING *`,
       [name, description, deduction_type, amount || null, percentage || null,
-       applies_to || 'truck', is_active !== false, sort_order || 0, req.params.id]
+       applies_to || 'truck', is_active !== false, sort_order || 0, frequency || 'weekly', req.params.id]
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Not found' });
     res.json(result.rows[0]);

@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS company_settings (
 );
 
 INSERT INTO company_settings (company_name, city, state, base_state)
-VALUES ('BHTL Logistics LLC', 'Dayton', 'OH', 'OH')
-ON CONFLICT DO NOTHING;
+SELECT 'BHTL Logistics LLC', 'Dayton', 'OH', 'OH'
+WHERE NOT EXISTS (SELECT 1 FROM company_settings LIMIT 1);
 
 -- ============================================================
 -- CUSTOMERS
