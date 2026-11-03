@@ -75,7 +75,7 @@ function DrillDownModal({ type, weekStart, weekEnd, trucks, onClose }) {
       if (type === 'fuel') {
         const res = await api.get('/live-stats/fuel-breakdown', { params });
         setData(res.data);
-      } else if (type === 'loads' || type === 'revenue') {
+      } else if (type === 'loads' || type === 'revenue' || type === 'delivered' || type === 'pending') {
         const res = await api.get('/live-stats/loads-breakdown', { params });
         setData(res.data);
       }
@@ -88,7 +88,13 @@ function DrillDownModal({ type, weekStart, weekEnd, trucks, onClose }) {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const titles = { fuel: '⛽ Fuel Breakdown', loads: '📦 Load Breakdown', revenue: '💰 Revenue Breakdown' };
+  const titles = {
+    fuel: '⛽ Fuel Breakdown',
+    loads: '📦 Active Load Breakdown',
+    revenue: '💰 Revenue Breakdown',
+    delivered: '✅ Delivered This Week',
+    pending: '⚠️ Pending Settlements',
+  };
 
   return (
     <div style={{
@@ -164,11 +170,15 @@ function DrillDownModal({ type, weekStart, weekEnd, trucks, onClose }) {
                       ) : data.purchases.map(p => (
                         <tr key={p.id}>
                           <td style={{ fontWeight: 600 }}>{p.unit_number || '—'}</td>
-                          <td style={{ fontSize: 12 }}>{p.purchase_date}</td>
-                          <td style={{ fontSize: 12 }}>{p.location || '—'}</td>
+                          <td style={{ fontSize: 12 }}>
+                            {p.purchase_date
+                              ? new Date(p.purchase_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                              : '—'}
+                          </td>
+                          <td style={{ fontSize: 12 }}>{p.vendor ? `${p.vendor}` : '—'}{p.state ? ` · ${p.state}` : ''}</td>
                           <td style={{ fontSize: 12 }}>{p.fuel_type || 'Diesel'}</td>
                           <td style={{ textAlign: 'right' }}>{parseFloat(p.gallons || 0).toFixed(1)}</td>
-                          <td style={{ textAlign: 'right', fontSize: 12 }}>${parseFloat(p.price_per_gallon || 0).toFixed(3)}</td>
+                          <td style={{ textAlign: 'right', fontSize: 12 }}>${parseFloat(p.cost_per_gallon || 0).toFixed(3)}</td>
                           <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--danger)' }}>{fmt(p.total_cost)}</td>
                         </tr>
                       ))}
@@ -242,31 +252,19 @@ function DrillDownModal({ type, weekStart, weekEnd, trucks, onClose }) {
 
 // ── Clickable KPI card ────────────────────────────────────────────────────
 function KpiCard({ icon, label, value, sub, accent = '#3B82F6', onClick, clickable }) {
-  const [hovered, setHovered] = useState(false);
   return (
     <div
-      className="stat-card"
-      style={{
-        '--accent': accent,
-        cursor: clickable ? 'pointer' : 'default',
-        transition: 'transform 0.15s, box-shadow 0.15s',
-        transform: hovered && clickable ? 'translateY(-3px)' : 'none',
-        boxShadow: hovered && clickable ? '0 8px 24px rgba(0,0,0,0.3)' : undefined,
-        position: 'relative',
-      }}
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className={`stat-card${clickable ? ' clickable' : ''}`}
+      style={{ '--accent': accent }}
+      onClick={clickable ? onClick : undefined}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(); } : undefined}
     >
       <div className="stat-icon">{icon}</div>
       <div className="stat-label">{label}</div>
       <div className="stat-value">{value}</div>
-      {sub && <div className="stat-sub">{sub}</div>}
-      {clickable && (
-        <div style={{ position: 'absolute', bottom: 8, right: 10, fontSize: 10, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 3 }}>
-          <FaChevronDown style={{ fontSize: 8 }} /> tap for details
-        </div>
-      )}
+      {sub && <div className="stat-sub">{clickable ? `👆 ${sub}` : sub}</div>}
     </div>
   );
 }
@@ -498,8 +496,9 @@ export default function LiveStats() {
         />
         <KpiCard
           icon={<FaChartBar />} label="Net After Fuel"
-          value={fmt(weekRevForTruck - weekFuelForTruck)} sub="Before other deductions"
-          accent="#8B5CF6"
+          value={fmt(weekRevForTruck - weekFuelForTruck)} sub="Click for load breakdown"
+          accent="#8B5CF6" clickable
+          onClick={() => setDrillDown('loads')}
         />
         <KpiCard
           icon={<FaBox />} label="Active Loads"
@@ -510,13 +509,15 @@ export default function LiveStats() {
         <KpiCard
           icon={<FaCheckCircle />} label="Delivered This Week"
           value={summary.week_loads} sub={`${Math.round(summary.week_miles || 0).toLocaleString()} miles`}
-          accent="#059669"
+          accent="#059669" clickable
+          onClick={() => setDrillDown('loads')}
         />
         {pending_settlements.length > 0 && (
           <KpiCard
             icon={<FaExclamationTriangle />} label="Pending Settlements"
             value={pending_settlements.length} sub="Drivers need settlement"
-            accent="#EF4444"
+            accent="#EF4444" clickable
+            onClick={() => setDrillDown('loads')}
           />
         )}
       </div>

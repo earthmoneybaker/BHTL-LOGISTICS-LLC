@@ -108,10 +108,14 @@ export function formatCurrency(val) {
   return `$${parseFloat(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-// Format date
+// Format date — safely handles "YYYY-MM-DD" strings without timezone shift
 export function formatDate(val) {
   if (!val) return '—';
-  return new Date(val).toLocaleDateString('en-US');
+  // If it's a plain date string (YYYY-MM-DD), parse at noon to avoid UTC midnight shifting date back
+  const str = String(val);
+  const isPlainDate = /^\d{4}-\d{2}-\d{2}$/.test(str);
+  const d = isPlainDate ? new Date(str + 'T12:00:00') : new Date(str);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 // Days until expiration

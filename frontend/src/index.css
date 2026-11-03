@@ -339,12 +339,27 @@ body {
   position: relative;
   overflow: hidden;
   transition: var(--transition);
+  user-select: none;
 }
 
 .stat-card:hover {
   border-color: var(--brand-blue-light);
   transform: translateY(-2px);
   box-shadow: 0 10px 32px rgba(59,130,246,0.15);
+}
+
+.stat-card.clickable {
+  cursor: pointer;
+}
+
+.stat-card.clickable:hover {
+  border-color: var(--brand-blue-light);
+  box-shadow: 0 12px 36px rgba(59,130,246,0.22);
+}
+
+.stat-card.clickable:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 4px 12px rgba(59,130,246,0.2);
 }
 
 .stat-card::before {
@@ -385,6 +400,7 @@ body {
   top: 16px;
   font-size: 28px;
   opacity: 0.6;
+  pointer-events: none;
 }
 
 /* =====================
