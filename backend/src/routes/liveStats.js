@@ -245,8 +245,8 @@ router.get('/fuel-breakdown', async (req, res) => {
     }
 
     const rows = await db.query(
-      `SELECT fp.id, fp.purchase_date, fp.location, fp.gallons, fp.price_per_gallon,
-              fp.total_cost, fp.fuel_type, fp.notes,
+      `SELECT fp.id, fp.purchase_date, fp.state, fp.vendor, fp.gallons,
+              fp.cost_per_gallon, fp.total_cost, fp.notes,
               t.unit_number, t.make, t.model
        FROM fuel_purchases fp
        LEFT JOIN trucks t ON t.id = fp.truck_id
