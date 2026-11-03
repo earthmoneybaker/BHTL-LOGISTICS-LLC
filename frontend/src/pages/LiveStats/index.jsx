@@ -26,22 +26,34 @@ function isOverdue(load) {
   if (!load.delivery_date) return false;
   const now = new Date();
   const delDate = load.delivery_date;
-  const delTime = load.delivery_time || '23:59';
+  const delTime = normalizeTime(load.delivery_time) || '23:59';
   const delDT = new Date(`${delDate}T${delTime}:00`);
   return delDT < now && (load.status === 'in_transit' || load.status === 'dispatched');
 }
 
 // ── Format delivery time display ──────────────────────────────────────────
+// ── Normalize time string to HH:MM ──────────────────────────────────────
+function normalizeTime(t) {
+  if (!t) return null;
+  const s = String(t).trim();
+  if (s.includes(':')) return s; // already HH:MM
+  if (s.length === 4) return `${s.slice(0, 2)}:${s.slice(2)}`; // 1500 → 15:00
+  if (s.length === 3) return `0${s.slice(0, 1)}:${s.slice(1)}`; // 930 → 09:30
+  return s;
+}
+
 function formatDeliveryInfo(load) {
   if (!load.delivery_date) return null;
   const dateStr = new Date(load.delivery_date + 'T12:00:00').toLocaleDateString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric',
   });
-  const timeStr = load.delivery_time
+  const rawTime = load.delivery_time;
+  const hhmm = normalizeTime(rawTime);
+  const timeStr = hhmm
     ? (() => {
-        const [h, m] = load.delivery_time.split(':');
+        const [h, m] = hhmm.split(':');
         const dt = new Date();
-        dt.setHours(parseInt(h), parseInt(m));
+        dt.setHours(parseInt(h, 10), parseInt(m, 10));
         return dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
       })()
     : null;
