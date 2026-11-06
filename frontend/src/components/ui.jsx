@@ -28,7 +28,8 @@ export function ExpirationBadge({ date, label }) {
 
 // Simple confirmation dialog
 export function ConfirmModal({ open, title, message, onConfirm, onCancel, danger = true, confirmLabel = 'Confirm' }) {
-  if (!open) return null;
+  // Support both: `open` prop controlled, or conditional rendering (open=undefined → always show)
+  if (open === false) return null;
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal modal-sm" onClick={e => e.stopPropagation()}>

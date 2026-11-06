@@ -155,7 +155,20 @@ export default function Loads() {
     }
   };
 
-  const f = (k) => (e) => setForm(prev => ({ ...prev, [k]: e.target.value }));
+  const f = (k) => (e) => {
+    const val = e.target.value;
+    setForm(prev => {
+      const updated = { ...prev, [k]: val };
+      // Auto-populate driver when truck is selected
+      if (k === 'truck_id' && val) {
+        const selectedTruck = trucks.find(t => t.id === val);
+        if (selectedTruck?.assigned_driver_id && !prev.driver_id) {
+          updated.driver_id = selectedTruck.assigned_driver_id;
+        }
+      }
+      return updated;
+    });
+  };
 
   const handleBackfill = async () => {
     setBackfilling(true);
@@ -611,11 +624,15 @@ export default function Loads() {
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-                <div className="form-group" style={{ margin: 0 }}>
+              <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">Truck</label>
                   <select className="form-control" value={form.truck_id} onChange={f('truck_id')}>
                     <option value="">Unassigned</option>
-                    {trucks.map(t => <option key={t.id} value={t.id}>#{t.unit_number} {t.make} {t.model}</option>)}
+                    {trucks.map(t => {
+                      const driver = drivers.find(d => d.id === t.assigned_driver_id);
+                      const driverName = driver ? ` — ${driver.first_name} ${driver.last_name}` : '';
+                      return <option key={t.id} value={t.id}>#{t.unit_number}{driverName}</option>;
+                    })}
                   </select>
                 </div>
                 <div className="form-group" style={{ margin: 0 }}>
@@ -631,6 +648,13 @@ export default function Loads() {
                     <option value="">Unassigned</option>
                     {drivers.map(d => <option key={d.id} value={d.id}>{d.first_name} {d.last_name}</option>)}
                   </select>
+                  {form.truck_id && form.driver_id && (() => {
+                    const t = trucks.find(tr => tr.id === form.truck_id);
+                    if (t?.assigned_driver_id === form.driver_id) {
+                      return <div style={{ fontSize: 11, color: 'var(--success)', marginTop: 3 }}>✓ Auto-matched to truck</div>;
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
 

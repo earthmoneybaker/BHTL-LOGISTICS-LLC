@@ -105,6 +105,28 @@ async function initDb() {
       }
     }
 
+    // Apply fuel cards migration
+    try {
+      const fuelCardsMig = fs.readFileSync(path.join(__dirname, 'db/fuel_cards_migration.sql'), 'utf8');
+      await db.exec(fuelCardsMig);
+      console.log('✅ Fuel cards migration applied');
+    } catch (migErr) {
+      if (!migErr.message.includes('already exists')) {
+        console.warn('⚠️  Fuel cards migration:', migErr.message.slice(0, 120));
+      }
+    }
+
+    // Apply staff members migration
+    try {
+      const staffMig = fs.readFileSync(path.join(__dirname, 'db/staff_migration.sql'), 'utf8');
+      await db.exec(staffMig);
+      console.log('✅ Staff migration applied');
+    } catch (migErr) {
+      if (!migErr.message.includes('already exists')) {
+        console.warn('⚠️  Staff migration:', migErr.message.slice(0, 120));
+      }
+    }
+
     // Seed default admin if no users exist
     const userCheck = await db.query('SELECT COUNT(*) FROM users');
     if (parseInt(userCheck.rows[0].count) === 0) {

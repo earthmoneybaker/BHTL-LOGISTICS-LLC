@@ -10,7 +10,7 @@ import {
   Spinner, EmptyState, PageHeader, Modal, formatCurrency, formatDate, ConfirmModal
 } from '../../components/ui';
 import toast from 'react-hot-toast';
-import { downloadReportPDF, shareReportViaWhatsApp } from '../../utils/reportPDF';
+import { downloadReportPDF, shareReportViaWhatsApp, downloadWeeklySummaryPDF } from '../../utils/reportPDF';
 
 // ── Utility ───────────────────────────────────────────────────────────
 function getMondayOfWeek(date = new Date()) {
@@ -606,6 +606,17 @@ export default function Reports() {
   const [viewLoading, setViewLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [filters, setFilters] = useState({ truck_id: '', status: '' });
+  // Weekly PDF download
+  const [weeklyPdfTruck, setWeeklyPdfTruck] = useState('');
+  const [weeklyPdfStart, setWeeklyPdfStart] = useState(() => {
+    const d = new Date(); const day = d.getDay(); const diff = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff); return d.toISOString().slice(0, 10);
+  });
+  const [weeklyPdfEnd, setWeeklyPdfEnd] = useState(() => {
+    const d = new Date(); const day = d.getDay(); const diff = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff + 6); return d.toISOString().slice(0, 10);
+  });
+  const [weeklyPdfGenerating, setWeeklyPdfGenerating] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -663,6 +674,30 @@ export default function Reports() {
     }
   };
 
+  const handleWeeklyPdf = async () => {
+    setWeeklyPdfGenerating(true);
+    try {
+      const params = { period_start: weeklyPdfStart, period_end: weeklyPdfEnd };
+      if (weeklyPdfTruck) params.truck_id = weeklyPdfTruck;
+      const res = await api.get('/reports/weekly-summary', { params });
+      const data = res.data;
+      if (!data.trucks || data.trucks.length === 0) {
+        toast.error('No trucks found for that period.');
+        return;
+      }
+      const truckLabel = weeklyPdfTruck
+        ? `Truck${trucks.find(t => t.id === weeklyPdfTruck)?.unit_number || ''}`
+        : 'AllTrucks';
+      const filename = await downloadWeeklySummaryPDF(data, truckLabel);
+      toast.success(`PDF downloaded: ${filename}`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to generate weekly PDF');
+    } finally {
+      setWeeklyPdfGenerating(false);
+    }
+  };
+
   const statusColor = { draft: 'var(--text-muted)', finalized: 'var(--brand-blue-light)', sent: 'var(--success)' };
 
   if (viewReport) {
@@ -690,6 +725,49 @@ export default function Reports() {
           </button>
         }
       />
+
+      {/* ── WEEKLY PDF DOWNLOAD CARD ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(15,40,80,0.4) 100%)',
+        border: '1px solid var(--border-color)',
+        borderRadius: 14, padding: '20px 24px', marginBottom: 24,
+        display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap',
+      }}>
+        <div style={{ flex: '0 0 auto' }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--brand-orange)', marginBottom: 2 }}>
+            <FaFilePdf style={{ marginRight: 6 }} />DOWNLOAD WEEKLY PDF REPORT
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Choose a week and truck, then download a formatted PDF</div>
+        </div>
+        <div className="form-group" style={{ margin: 0 }}>
+          <label className="form-label" style={{ fontSize: 11 }}>Truck</label>
+          <select className="form-control" style={{ minWidth: 160 }} value={weeklyPdfTruck} onChange={e => setWeeklyPdfTruck(e.target.value)}>
+            <option value="">All Trucks</option>
+            {trucks.map(t => <option key={t.id} value={t.id}>#{t.unit_number}</option>)}
+          </select>
+        </div>
+        <div className="form-group" style={{ margin: 0 }}>
+          <label className="form-label" style={{ fontSize: 11 }}>Week Start (Mon)</label>
+          <input type="date" className="form-control" value={weeklyPdfStart}
+            onChange={e => {
+              const d = new Date(e.target.value + 'T12:00:00');
+              setWeeklyPdfStart(e.target.value);
+              const end = new Date(d); end.setDate(d.getDate() + 6);
+              setWeeklyPdfEnd(end.toISOString().slice(0, 10));
+            }}
+          />
+        </div>
+        <div className="form-group" style={{ margin: 0 }}>
+          <label className="form-label" style={{ fontSize: 11 }}>Week End (Sun)</label>
+          <input type="date" className="form-control" value={weeklyPdfEnd}
+            onChange={e => setWeeklyPdfEnd(e.target.value)}
+          />
+        </div>
+        <button className="btn btn-primary" onClick={handleWeeklyPdf} disabled={weeklyPdfGenerating}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 160 }}>
+          <FaFilePdf />{weeklyPdfGenerating ? 'Generating...' : 'Download PDF'}
+        </button>
+      </div>
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>

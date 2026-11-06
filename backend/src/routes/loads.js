@@ -237,6 +237,8 @@ router.patch('/:id/status', async (req, res) => {
 // DELETE /api/loads/:id — permanently removes the load
 router.delete('/:id', async (req, res) => {
   try {
+    // Nullify invoice FK so delete doesn't get blocked by FK constraint
+    await db.query('UPDATE invoices SET load_id=NULL WHERE load_id=$1', [req.params.id]);
     const result = await db.query('DELETE FROM loads WHERE id=$1 RETURNING id', [req.params.id]);
     if (!result.rows[0]) return res.status(404).json({ error: 'Load not found' });
     res.json({ success: true });

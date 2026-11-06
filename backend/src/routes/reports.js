@@ -289,6 +289,125 @@ router.post('/calculate', async (req, res) => {
   }
 });
 
+// ── GET /api/reports/weekly-summary — data for weekly PDF download ────
+// ?period_start=YYYY-MM-DD&period_end=YYYY-MM-DD&truck_id=UUID (optional)
+router.get('/weekly-summary', async (req, res) => {
+  try {
+    const { period_start, period_end, truck_id } = req.query;
+
+    // Default to current week Mon–Sun
+    const now = new Date();
+    const day = now.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    const start = period_start || monday.toISOString().split('T')[0];
+    const end   = period_end   || sunday.toISOString().split('T')[0];
+
+    // Get active trucks (filtered or all)
+    const truckQ = await db.query(
+      `SELECT t.id, t.unit_number, t.make, t.model,
+              d.id as driver_id, d.first_name, d.last_name, d.phone
+       FROM trucks t
+       LEFT JOIN drivers d ON d.id = t.assigned_driver_id
+       WHERE t.is_active = true ${truck_id ? 'AND t.id = $1' : ''}
+       ORDER BY t.unit_number`,
+      truck_id ? [truck_id] : []
+    );
+
+    const trucks = truckQ.rows;
+    const result = [];
+
+    for (const truck of trucks) {
+      const loadsQ = await db.query(
+        `SELECT l.id, l.load_number, l.rate, l.miles,
+                l.pickup_date, l.delivery_date,
+                l.origin_city, l.origin_state,
+                l.destination_city, l.destination_state,
+                l.status,
+                d.first_name as driver_first, d.last_name as driver_last,
+                d.pay_type, d.pay_rate
+         FROM loads l
+         LEFT JOIN drivers d ON d.id = l.driver_id
+         WHERE l.truck_id = $1
+           AND l.delivery_date >= $2 AND l.delivery_date <= $3
+           AND l.status IN ('delivered','invoiced','paid')
+         ORDER BY l.delivery_date ASC`,
+        [truck.id, start, end]
+      );
+
+      const fuelQ = await db.query(
+        `SELECT COALESCE(SUM(total_cost),0) as total_cost,
+                COALESCE(SUM(gallons),0) as total_gallons,
+                COUNT(*) as purchases
+         FROM fuel_purchases
+         WHERE truck_id = $1 AND purchase_date >= $2 AND purchase_date <= $3`,
+        [truck.id, start, end]
+      );
+
+      const loads = loadsQ.rows;
+      const fuelRow = fuelQ.rows[0];
+      const gross_revenue = loads.reduce((s, l) => s + (parseFloat(l.rate) || 0), 0);
+      const fuel_cost = parseFloat(fuelRow.total_cost) || 0;
+
+      const driver_pay = loads.reduce((s, l) => {
+        const rate = parseFloat(l.rate) || 0;
+        const miles = parseFloat(l.miles) || 0;
+        if (l.pay_type === 'per_mile') return s + miles * (parseFloat(l.pay_rate) || 0);
+        if (l.pay_type === 'percentage') return s + rate * ((parseFloat(l.pay_rate) || 0) / 100);
+        return s;
+      }, 0);
+
+      result.push({
+        truck_id: truck.id,
+        unit_number: truck.unit_number,
+        make: truck.make,
+        model: truck.model,
+        driver_first: truck.first_name,
+        driver_last: truck.last_name,
+        driver_phone: truck.phone,
+        gross_revenue: Math.round(gross_revenue * 100) / 100,
+        fuel_cost: Math.round(fuel_cost * 100) / 100,
+        net_after_fuel: Math.round((gross_revenue - fuel_cost) * 100) / 100,
+        driver_pay: Math.round(driver_pay * 100) / 100,
+        load_count: loads.length,
+        total_gallons: parseFloat(fuelRow.total_gallons) || 0,
+        fuel_purchases: parseInt(fuelRow.purchases) || 0,
+        loads: loads.map(l => ({
+          load_number: l.load_number,
+          pickup_date: l.pickup_date,
+          delivery_date: l.delivery_date,
+          origin: `${l.origin_city || ''}, ${l.origin_state || ''}`.trim().replace(/^,\s*|,\s*$/,''),
+          destination: `${l.destination_city || ''}, ${l.destination_state || ''}`.trim().replace(/^,\s*|,\s*$/,''),
+          miles: parseFloat(l.miles) || 0,
+          rate: parseFloat(l.rate) || 0,
+          status: l.status,
+        })),
+      });
+    }
+
+    const fleet_total_revenue = result.reduce((s, t) => s + t.gross_revenue, 0);
+    const fleet_total_fuel    = result.reduce((s, t) => s + t.fuel_cost, 0);
+    const fleet_total_loads   = result.reduce((s, t) => s + t.load_count, 0);
+
+    res.json({
+      period: { start, end },
+      trucks: result,
+      totals: {
+        gross_revenue: Math.round(fleet_total_revenue * 100) / 100,
+        fuel_cost:     Math.round(fleet_total_fuel * 100) / 100,
+        net_after_fuel: Math.round((fleet_total_revenue - fleet_total_fuel) * 100) / 100,
+        load_count:    fleet_total_loads,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/reports/:id ──────────────────────────────────────────────
 router.get('/:id', async (req, res) => {
   try {
@@ -432,6 +551,129 @@ router.delete('/:id', requireAdmin, async (req, res) => {
     const result = await db.query('DELETE FROM weekly_reports WHERE id=$1 RETURNING id', [req.params.id]);
     if (!result.rows[0]) return res.status(404).json({ error: 'Not found' });
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /api/reports/weekly-summary — data for weekly PDF download ────
+// ?period_start=YYYY-MM-DD&period_end=YYYY-MM-DD&truck_id=UUID (optional)
+router.get('/weekly-summary', async (req, res) => {
+  try {
+    const { period_start, period_end, truck_id } = req.query;
+
+    // Default to current week Mon–Sun
+    const now = new Date();
+    const day = now.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    const start = period_start || monday.toISOString().split('T')[0];
+    const end   = period_end   || sunday.toISOString().split('T')[0];
+
+    // Get active trucks (filtered or all)
+    const truckQ = await db.query(
+      `SELECT t.id, t.unit_number, t.make, t.model,
+              d.id as driver_id, d.first_name, d.last_name, d.phone
+       FROM trucks t
+       LEFT JOIN drivers d ON d.id = t.assigned_driver_id
+       WHERE t.is_active = true ${truck_id ? 'AND t.id = $1' : ''}
+       ORDER BY t.unit_number`,
+      truck_id ? [truck_id] : []
+    );
+
+    const trucks = truckQ.rows;
+    const result = [];
+
+    for (const truck of trucks) {
+      // Loads delivered this week for this truck
+      const loadsQ = await db.query(
+        `SELECT l.id, l.load_number, l.rate, l.miles,
+                l.pickup_date, l.delivery_date,
+                l.origin_city, l.origin_state,
+                l.destination_city, l.destination_state,
+                l.status,
+                d.first_name as driver_first, d.last_name as driver_last,
+                d.pay_type, d.pay_rate
+         FROM loads l
+         LEFT JOIN drivers d ON d.id = l.driver_id
+         WHERE l.truck_id = $1
+           AND l.delivery_date >= $2 AND l.delivery_date <= $3
+           AND l.status IN ('delivered','invoiced','paid')
+         ORDER BY l.delivery_date ASC`,
+        [truck.id, start, end]
+      );
+
+      // Fuel this week for this truck
+      const fuelQ = await db.query(
+        `SELECT COALESCE(SUM(total_cost),0) as total_cost,
+                COALESCE(SUM(gallons),0) as total_gallons,
+                COUNT(*) as purchases
+         FROM fuel_purchases
+         WHERE truck_id = $1 AND purchase_date >= $2 AND purchase_date <= $3`,
+        [truck.id, start, end]
+      );
+
+      const loads = loadsQ.rows;
+      const fuelRow = fuelQ.rows[0];
+      const gross_revenue = loads.reduce((s, l) => s + (parseFloat(l.rate) || 0), 0);
+      const fuel_cost = parseFloat(fuelRow.total_cost) || 0;
+      const net_after_fuel = gross_revenue - fuel_cost;
+
+      // Driver pay
+      const driver_pay = loads.reduce((s, l) => {
+        const rate = parseFloat(l.rate) || 0;
+        const miles = parseFloat(l.miles) || 0;
+        if (l.pay_type === 'per_mile') return s + miles * (parseFloat(l.pay_rate) || 0);
+        if (l.pay_type === 'percentage') return s + rate * ((parseFloat(l.pay_rate) || 0) / 100);
+        return s;
+      }, 0);
+
+      result.push({
+        truck_id: truck.id,
+        unit_number: truck.unit_number,
+        make: truck.make,
+        model: truck.model,
+        driver_first: truck.first_name,
+        driver_last: truck.last_name,
+        driver_phone: truck.phone,
+        gross_revenue: Math.round(gross_revenue * 100) / 100,
+        fuel_cost: Math.round(fuel_cost * 100) / 100,
+        net_after_fuel: Math.round(net_after_fuel * 100) / 100,
+        driver_pay: Math.round(driver_pay * 100) / 100,
+        load_count: loads.length,
+        total_gallons: parseFloat(fuelRow.total_gallons) || 0,
+        fuel_purchases: parseInt(fuelRow.purchases) || 0,
+        loads: loads.map(l => ({
+          load_number: l.load_number,
+          pickup_date: l.pickup_date,
+          delivery_date: l.delivery_date,
+          origin: `${l.origin_city || ''}, ${l.origin_state || ''}`.trim().replace(/^,\s*|,\s*$/,''),
+          destination: `${l.destination_city || ''}, ${l.destination_state || ''}`.trim().replace(/^,\s*|,\s*$/,''),
+          miles: parseFloat(l.miles) || 0,
+          rate: parseFloat(l.rate) || 0,
+          status: l.status,
+        })),
+      });
+    }
+
+    const fleet_total_revenue = result.reduce((s, t) => s + t.gross_revenue, 0);
+    const fleet_total_fuel    = result.reduce((s, t) => s + t.fuel_cost, 0);
+    const fleet_total_loads   = result.reduce((s, t) => s + t.load_count, 0);
+
+    res.json({
+      period: { start, end },
+      trucks: result,
+      totals: {
+        gross_revenue: Math.round(fleet_total_revenue * 100) / 100,
+        fuel_cost:     Math.round(fleet_total_fuel * 100) / 100,
+        net_after_fuel: Math.round((fleet_total_revenue - fleet_total_fuel) * 100) / 100,
+        load_count:    fleet_total_loads,
+      },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -1,5 +1,5 @@
-import { FaTrash, FaEdit, FaGasPump, FaRoad, FaChartBar } from 'react-icons/fa';
-import { useState, useEffect, useCallback } from 'react';
+import { FaTrash, FaEdit, FaGasPump, FaRoad, FaChartBar, FaTruck, FaCalendarWeek } from 'react-icons/fa';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import api, { downloadFile } from '../../api/client';
 import { Spinner, EmptyState, PageHeader, Modal, formatCurrency, formatDate, ConfirmModal } from '../../components/ui';
 import toast from 'react-hot-toast';
@@ -14,6 +14,20 @@ const defaultFuelForm = {
 const defaultMilesForm = {
   truck_id: '', load_id: '', state: 'OH', miles: '', trip_date: new Date().toISOString().split('T')[0],
 };
+
+// Get the Monday of the current week
+function getWeekStart() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().split('T')[0];
+}
+function getWeekEnd() {
+  const start = new Date(getWeekStart() + 'T12:00:00');
+  start.setDate(start.getDate() + 6);
+  return start.toISOString().split('T')[0];
+}
 
 export default function Fuel() {
   const [tab, setTab] = useState('fuel');
@@ -33,6 +47,7 @@ export default function Fuel() {
     year: `${new Date().getFullYear()}`, truck_id: '',
   });
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [weekFilter, setWeekFilter] = useState('this'); // 'this' | 'all'
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -100,6 +115,29 @@ export default function Fuel() {
   const totalGallons = fuel.reduce((a, f) => a + parseFloat(f.gallons || 0), 0);
   const totalFuelCost = fuel.reduce((a, f) => a + parseFloat(f.total_cost || 0), 0);
 
+  // Weekly fuel cost per truck
+  const weekStart = getWeekStart();
+  const weekEnd = getWeekEnd();
+
+  const weeklyFuel = useMemo(() => {
+    const weekFuel = fuel.filter(f => {
+      const d = f.purchase_date;
+      return d >= weekStart && d <= weekEnd;
+    });
+    // Group by truck
+    const byTruck = {};
+    weekFuel.forEach(f => {
+      const key = f.truck_id || '__none__';
+      if (!byTruck[key]) byTruck[key] = { truck_id: f.truck_id, truck_unit: f.truck_unit || 'Unknown', total_cost: 0, gallons: 0, purchases: 0 };
+      byTruck[key].total_cost += parseFloat(f.total_cost || 0);
+      byTruck[key].gallons += parseFloat(f.gallons || 0);
+      byTruck[key].purchases += 1;
+    });
+    return Object.values(byTruck).sort((a, b) => b.total_cost - a.total_cost);
+  }, [fuel, weekStart, weekEnd]);
+
+  const weeklyTotal = weeklyFuel.reduce((a, t) => a + t.total_cost, 0);
+
   return (
     <div>
       <PageHeader title="Fuel & IFTA"
@@ -112,27 +150,33 @@ export default function Fuel() {
       />
 
       <div className="tabs">
-        {[['fuel', <><FaGasPump /> Fuel Purchases ({fuel.length})</>], ['miles', <><FaRoad /> Miles by State ({miles.length})</>], ['ifta', <><FaChartBar /> IFTA Report</>]].map(([t,l]) => (
+        {[['fuel', <><FaGasPump /> Fuel Purchases ({fuel.length})</>], ['weekly', <><FaCalendarWeek /> This Week by Truck</>], ['miles', <><FaRoad /> Miles by State ({miles.length})</>], ['ifta', <><FaChartBar /> IFTA Report</>]].map(([t,l]) => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{l}</button>
         ))}
       </div>
 
       {loading ? <Spinner /> : (
         <>
+          {/* ── ALL FUEL PURCHASES ── */}
           {tab === 'fuel' && (
             <div>
               <div className="stat-grid mb-16">
                 <div className="stat-card" style={{ '--accent':'var(--brand-orange)' }}>
-                  <div className="stat-label">Total Gallons</div>
+                  <div className="stat-label">Total Gallons (All Time)</div>
                   <div className="stat-value">{totalGallons.toFixed(1)}</div>
                 </div>
                 <div className="stat-card" style={{ '--accent':'var(--danger)' }}>
-                  <div className="stat-label">Total Fuel Cost</div>
+                  <div className="stat-label">Total Fuel Cost (All Time)</div>
                   <div className="stat-value" style={{ fontSize:'20px' }}>{formatCurrency(totalFuelCost)}</div>
                 </div>
                 <div className="stat-card" style={{ '--accent':'var(--info)' }}>
                   <div className="stat-label">Avg Cost/Gallon</div>
                   <div className="stat-value">{totalGallons > 0 ? `$${(totalFuelCost / totalGallons).toFixed(3)}` : '—'}</div>
+                </div>
+                <div className="stat-card" style={{ '--accent':'#10B981' }}>
+                  <div className="stat-label">This Week Total</div>
+                  <div className="stat-value" style={{ fontSize:'20px' }}>{formatCurrency(weeklyTotal)}</div>
+                  <div className="stat-sub">{weeklyFuel.length > 0 ? `${weeklyFuel.length} truck${weeklyFuel.length > 1 ? 's' : ''}` : 'No purchases yet'}</div>
                 </div>
               </div>
 
@@ -145,7 +189,7 @@ export default function Fuel() {
                         : fuel.map(f => (
                         <tr key={f.id}>
                           <td className="muted">{formatDate(f.purchase_date)}</td>
-                          <td>{f.truck_unit ? `#${f.truck_unit}` : '—'}</td>
+                          <td style={{ fontWeight: 600 }}>{f.truck_unit ? `#${f.truck_unit}` : '—'}</td>
                           <td style={{ fontWeight:700 }}>{f.state}</td>
                           <td>{parseFloat(f.gallons).toFixed(3)}</td>
                           <td className="muted">{f.cost_per_gallon ? `$${parseFloat(f.cost_per_gallon).toFixed(4)}` : '—'}</td>
@@ -166,6 +210,104 @@ export default function Fuel() {
             </div>
           )}
 
+          {/* ── WEEKLY FUEL BY TRUCK ── */}
+          {tab === 'weekly' && (
+            <div>
+              <div style={{
+                background: 'var(--bg-card)', border: '1px solid var(--border-color)',
+                borderRadius: 12, padding: '14px 20px', marginBottom: 20,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
+              }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+                    <FaCalendarWeek style={{ marginRight: 8, color: 'var(--brand-blue-light)' }} />
+                    Week: {new Date(weekStart + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {new Date(weekEnd + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>Fuel costs for the current work week (Mon–Sun)</div>
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--danger)' }}>
+                  Week Total: {formatCurrency(weeklyTotal)}
+                </div>
+              </div>
+
+              {weeklyFuel.length === 0 ? (
+                <div className="card">
+                  <EmptyState icon={<FaGasPump />} title="No fuel purchases this week" description="Fuel logged this week (Mon–Sun) will appear here grouped by truck." />
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+                  {weeklyFuel.map(t => (
+                    <div key={t.truck_id || '__none__'} style={{
+                      background: 'var(--bg-card)', border: '1px solid var(--border-color)',
+                      borderRadius: 14, padding: 20, position: 'relative', overflow: 'hidden',
+                    }}>
+                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, var(--brand-orange), transparent)' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(249,115,22,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <FaTruck style={{ color: 'var(--brand-orange)', fontSize: 18 }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 15, fontWeight: 800 }}>Truck #{t.truck_unit}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t.purchases} purchase{t.purchases !== 1 ? 's' : ''} this week</div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        <div>
+                          <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Cost</div>
+                          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--danger)' }}>{formatCurrency(t.total_cost)}</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Gallons</div>
+                          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' }}>{t.gallons.toFixed(1)}</div>
+                        </div>
+                      </div>
+                      <div style={{ marginTop: 12, padding: '8px 12px', background: 'var(--bg-primary)', borderRadius: 8, fontSize: 12, color: 'var(--text-muted)' }}>
+                        Avg: ${t.gallons > 0 ? (t.total_cost / t.gallons).toFixed(3) : '—'}/gal
+                      </div>
+                      {/* Bar showing proportion of week total */}
+                      <div style={{ marginTop: 10, height: 4, background: 'var(--border-color)', borderRadius: 2 }}>
+                        <div style={{ height: '100%', background: 'var(--brand-orange)', borderRadius: 2, width: `${weeklyTotal > 0 ? Math.min((t.total_cost / weeklyTotal) * 100, 100) : 0}%`, transition: 'width 0.5s ease' }} />
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 3, textAlign: 'right' }}>
+                        {weeklyTotal > 0 ? Math.round((t.total_cost / weeklyTotal) * 100) : 0}% of week total
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Detailed purchases this week */}
+              {weeklyFuel.length > 0 && (
+                <div className="card mt-20" style={{ padding: 0, marginTop: 24 }}>
+                  <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-color)', fontWeight: 700 }}>
+                    This Week's Fuel Purchases — Detail
+                  </div>
+                  <div className="table-wrapper">
+                    <table className="data-table">
+                      <thead><tr><th>Date</th><th>Truck</th><th>State</th><th>Gallons</th><th>$/Gal</th><th>Total</th><th>Vendor</th></tr></thead>
+                      <tbody>
+                        {fuel
+                          .filter(f => f.purchase_date >= weekStart && f.purchase_date <= weekEnd)
+                          .map(f => (
+                            <tr key={f.id}>
+                              <td className="muted">{formatDate(f.purchase_date)}</td>
+                              <td style={{ fontWeight: 600 }}>{f.truck_unit ? `#${f.truck_unit}` : '—'}</td>
+                              <td style={{ fontWeight: 700 }}>{f.state}</td>
+                              <td>{parseFloat(f.gallons).toFixed(3)}</td>
+                              <td className="muted">{f.cost_per_gallon ? `$${parseFloat(f.cost_per_gallon).toFixed(4)}` : '—'}</td>
+                              <td style={{ fontWeight: 700, color: 'var(--danger)' }}>{formatCurrency(f.total_cost)}</td>
+                              <td className="muted">{f.vendor || '—'}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── MILES BY STATE ── */}
           {tab === 'miles' && (
             <div className="card" style={{ padding: 0 }}>
               <div className="table-wrapper">
@@ -189,6 +331,7 @@ export default function Fuel() {
             </div>
           )}
 
+          {/* ── IFTA REPORT ── */}
           {tab === 'ifta' && (
             <div>
               <div className="card mb-16" style={{ padding:'16px 20px' }}>
@@ -227,7 +370,6 @@ export default function Fuel() {
                     <div className="stat-card"><div className="stat-label">Avg MPG</div><div className="stat-value">{iftaReport.avg_mpg}</div></div>
                     <div className="stat-card"><div className="stat-label">States Operated</div><div className="stat-value">{iftaReport.by_state.length}</div></div>
                   </div>
-
                   <div className="card" style={{ padding:0 }}>
                     <div style={{ padding:'14px 20px', borderBottom:'1px solid var(--border-color)' }}>
                       <span style={{ fontWeight:700 }}>IFTA Summary — Q{iftaReport.quarter} {iftaReport.year}</span>
@@ -252,7 +394,7 @@ export default function Fuel() {
                       </table>
                     </div>
                     <div className="alert alert-info" style={{ margin:'16px', borderRadius:'8px' }}>
-                      ℹ️ IFTA net gallons calculated from average fleet MPG. Positive = credit (paid more than used), Negative = you owe tax. Consult your state IFTA filing instructions for exact tax rates.
+                      ℹ️ IFTA net gallons calculated from average fleet MPG. Positive = credit, Negative = you owe tax. Consult your state IFTA filing for exact tax rates.
                     </div>
                   </div>
                 </div>
@@ -315,7 +457,7 @@ export default function Fuel() {
       )}
 
       {deleteTarget && (
-        <ConfirmModal title="Delete Fuel Record" message="Delete this fuel purchase?" onConfirm={handleDeleteFuel} onCancel={() => setDeleteTarget(null)} />
+        <ConfirmModal title="Delete Fuel Record" message="Delete this fuel purchase? This cannot be undone." onConfirm={handleDeleteFuel} onCancel={() => setDeleteTarget(null)} />
       )}
     </div>
   );

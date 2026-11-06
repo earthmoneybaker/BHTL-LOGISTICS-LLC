@@ -533,6 +533,37 @@ select.form-control {
 
 textarea.form-control { resize: vertical; min-height: 90px; }
 
+/* File inputs need native appearance restored — appearance:none hides the file picker */
+input[type="file"].form-control {
+  appearance: auto;
+  -webkit-appearance: auto;
+  padding: 7px 10px;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+input[type="file"].form-control::-webkit-file-upload-button {
+  background: var(--brand-blue);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 10px;
+}
+input[type="file"].form-control::file-selector-button {
+  background: var(--brand-blue);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
