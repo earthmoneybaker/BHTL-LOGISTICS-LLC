@@ -24,6 +24,7 @@ const PAGE_TITLES = {
   '/fuel': 'Fuel & IFTA',
   '/users': 'User Management',
   '/settings': 'Company Settings',
+  '/staff': 'Staff Management',
 };
 
 export default function Layout({ children }) {

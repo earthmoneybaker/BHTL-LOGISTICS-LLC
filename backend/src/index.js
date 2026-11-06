@@ -61,6 +61,7 @@ app.use('/api/reports', require('./routes/reports'));
 app.use('/api/todos', require('./routes/todos'));
 app.use('/api/deductions', require('./routes/deductions'));
 app.use('/api/live-stats', require('./routes/liveStats'));
+app.use('/api/staff', require('./routes/staff'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

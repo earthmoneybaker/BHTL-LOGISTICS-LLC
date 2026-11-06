@@ -1,14 +1,15 @@
-import { FaTrash, FaEdit, FaGasPump, FaRoad, FaChartBar, FaTruck, FaCalendarWeek } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaGasPump, FaRoad, FaChartBar, FaTruck, FaCalendarWeek, FaCreditCard } from 'react-icons/fa';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import api, { downloadFile } from '../../api/client';
 import { Spinner, EmptyState, PageHeader, Modal, formatCurrency, formatDate, ConfirmModal } from '../../components/ui';
 import toast from 'react-hot-toast';
+import { getDriverForTruck, getCardsForTruck, formatCardNumber, CARD_DRIVER_MAP } from '../../utils/truckDrivers';
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
 const defaultFuelForm = {
   truck_id: '', purchase_date: new Date().toISOString().split('T')[0], state: 'OH',
-  gallons: '', cost_per_gallon: '', total_cost: '', vendor: '', notes: '',
+  gallons: '', cost_per_gallon: '', total_cost: '', vendor: '', notes: '', card_last3: '',
 };
 
 const defaultMilesForm = {
@@ -183,26 +184,40 @@ export default function Fuel() {
               <div className="card" style={{ padding: 0 }}>
                 <div className="table-wrapper">
                   <table className="data-table">
-                    <thead><tr><th>Date</th><th>Truck</th><th>State</th><th>Gallons</th><th>$/Gal</th><th>Total</th><th>Vendor</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Date</th><th>Truck / Driver</th><th>Card</th><th>State</th><th>Gallons</th><th>$/Gal</th><th>Total</th><th>Vendor</th><th>Actions</th></tr></thead>
                     <tbody>
-                      {fuel.length === 0 ? <tr><td colSpan={8}><EmptyState icon={<FaGasPump />} title="No fuel purchases logged" /></td></tr>
-                        : fuel.map(f => (
-                        <tr key={f.id}>
-                          <td className="muted">{formatDate(f.purchase_date)}</td>
-                          <td style={{ fontWeight: 600 }}>{f.truck_unit ? `#${f.truck_unit}` : '—'}</td>
-                          <td style={{ fontWeight:700 }}>{f.state}</td>
-                          <td>{parseFloat(f.gallons).toFixed(3)}</td>
-                          <td className="muted">{f.cost_per_gallon ? `$${parseFloat(f.cost_per_gallon).toFixed(4)}` : '—'}</td>
-                          <td style={{ fontWeight:700, color:'var(--danger)' }}>{formatCurrency(f.total_cost)}</td>
-                          <td className="muted">{f.vendor || '—'}</td>
-                          <td>
-                            <div className="flex gap-8">
-                              <button className="btn btn-ghost btn-sm" onClick={() => { setEditingFuel(f); setFuelForm({ ...defaultFuelForm, ...f, purchase_date: f.purchase_date?.split('T')[0]||'' }); setShowFuelModal(true); }}><FaEdit /></button>
-                              <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(f)}><FaTrash /></button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                      {fuel.length === 0 ? <tr><td colSpan={9}><EmptyState icon={<FaGasPump />} title="No fuel purchases logged" /></td></tr>
+                        : fuel.map(f => {
+                          const driverName = f.truck_unit ? getDriverForTruck(f.truck_unit) : null;
+                          const cardDisplay = f.card_last3 ? formatCardNumber(f.card_last3) : null;
+                          return (
+                            <tr key={f.id}>
+                              <td className="muted">{formatDate(f.purchase_date)}</td>
+                              <td>
+                                <div style={{ fontWeight: 700 }}>{f.truck_unit ? `#${f.truck_unit}` : '—'}</div>
+                                {driverName && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{driverName}</div>}
+                              </td>
+                              <td>
+                                {cardDisplay
+                                  ? <span style={{ fontFamily: 'monospace', fontSize: 12, background: 'rgba(255,255,255,0.05)', padding: '2px 7px', borderRadius: 5, border: '1px solid var(--border-color)' }}>
+                                      <FaCreditCard style={{ marginRight: 4, opacity: 0.5 }} />{cardDisplay}
+                                    </span>
+                                  : <span className="muted">—</span>}
+                              </td>
+                              <td style={{ fontWeight:700 }}>{f.state}</td>
+                              <td>{parseFloat(f.gallons).toFixed(3)}</td>
+                              <td className="muted">{f.cost_per_gallon ? `$${parseFloat(f.cost_per_gallon).toFixed(4)}` : '—'}</td>
+                              <td style={{ fontWeight:700, color:'var(--danger)' }}>{formatCurrency(f.total_cost)}</td>
+                              <td className="muted">{f.vendor || '—'}</td>
+                              <td>
+                                <div className="flex gap-8">
+                                  <button className="btn btn-ghost btn-sm" onClick={() => { setEditingFuel(f); setFuelForm({ ...defaultFuelForm, ...f, purchase_date: f.purchase_date?.split('T')[0]||'', card_last3: f.card_last3||'' }); setShowFuelModal(true); }}><FaEdit /></button>
+                                  <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(f)}><FaTrash /></button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                     </tbody>
                   </table>
                 </div>
@@ -248,6 +263,7 @@ export default function Fuel() {
                         </div>
                         <div>
                           <div style={{ fontSize: 15, fontWeight: 800 }}>Truck #{t.truck_unit}</div>
+                          <div style={{ fontSize: 12, color: 'var(--brand-blue-light)', fontWeight: 600 }}>{getDriverForTruck(t.truck_unit) || ''}</div>
                           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t.purchases} purchase{t.purchases !== 1 ? 's' : ''} this week</div>
                         </div>
                       </div>
@@ -420,8 +436,32 @@ export default function Fuel() {
             <div className="form-group"><label className="form-label">Truck</label>
               <select className="form-control" value={fuelForm.truck_id} onChange={ff('truck_id')}>
                 <option value="">Select truck...</option>
-                {trucks.map(t => <option key={t.id} value={t.id}>#{t.unit_number}</option>)}
+                {trucks.map(t => {
+                  const driverName = getDriverForTruck(t.unit_number);
+                  return <option key={t.id} value={t.id}>#{t.unit_number}{driverName ? ` — ${driverName}` : ''}</option>;
+                })}
               </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label"><FaCreditCard style={{ marginRight: 5 }} />Fuel Card (last 3 digits only)</label>
+              <input className="form-control" maxLength={3} placeholder="e.g. 839"
+                value={fuelForm.card_last3} onChange={ff('card_last3')} />
+              {/* Show associated cards for selected truck */}
+              {fuelForm.truck_id && (() => {
+                const t = trucks.find(tr => tr.id === fuelForm.truck_id);
+                const cards = t ? getCardsForTruck(t.unit_number) : [];
+                if (cards.length === 0) return null;
+                return (
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                    Known cards for this truck: {cards.map((c, i) => (
+                      <span key={i}
+                        style={{ cursor: 'pointer', marginLeft: 4, color: 'var(--brand-blue-light)', textDecoration: 'underline' }}
+                        onClick={() => setFuelForm(p => ({ ...p, card_last3: c.replace('***', '') }))}
+                      >{c}</span>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
             <div className="form-group"><label className="form-label">Vendor / Station</label><input className="form-control" value={fuelForm.vendor} onChange={ff('vendor')} /></div>
             <div className="form-group"><label className="form-label">Gallons *</label><input type="number" step="0.001" className="form-control" value={fuelForm.gallons} onChange={ff('gallons')} required /></div>

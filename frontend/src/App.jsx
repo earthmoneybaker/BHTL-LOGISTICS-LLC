@@ -30,6 +30,7 @@ import Reports from './pages/Reports/index';
 import LiveStats from './pages/LiveStats/index';
 import TodoList from './pages/TodoList/index';
 import Deductions from './pages/Deductions/index';
+import Staff from './pages/Staff/index';
 
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading, isAdmin } = useAuth();
@@ -71,6 +72,7 @@ function AppRoutes() {
       <Route path="/live-stats" element={<ProtectedRoute><LiveStats /></ProtectedRoute>} />
       <Route path="/todos" element={<ProtectedRoute><TodoList /></ProtectedRoute>} />
       <Route path="/deductions" element={<ProtectedRoute adminOnly><Deductions /></ProtectedRoute>} />
+      <Route path="/staff" element={<ProtectedRoute><Staff /></ProtectedRoute>} />
       <Route path="/fuel" element={<ProtectedRoute><Fuel /></ProtectedRoute>} />
       <Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute adminOnly><Users /></ProtectedRoute>} />

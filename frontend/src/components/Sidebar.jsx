@@ -1,7 +1,7 @@
 import {
   FaTruck, FaGasPump, FaChartBar, FaClipboardList, FaFileAlt, FaCreditCard,
   FaBox, FaMoneyBillWave, FaChartLine, FaDollarSign, FaUsers, FaCar, FaHandshake,
-  FaCog, FaFileImport, FaSignOutAlt, FaFileInvoiceDollar, FaBolt, FaTasks, FaMinusCircle
+  FaCog, FaFileImport, FaSignOutAlt, FaFileInvoiceDollar, FaBolt, FaTasks, FaMinusCircle, FaUserTie
 } from 'react-icons/fa';
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
     { to: '/extract-load', label: 'Extract from Document', icon: <FaFileAlt /> },
     { to: '/customers', label: 'Brokers', icon: <FaHandshake /> },
     { to: '/drivers', label: 'Drivers', icon: <FaCar /> },
+    { to: '/staff', label: 'Staff Management', icon: <FaUserTie /> },
     { to: '/fleet', label: 'Fleet', icon: <FaTruck /> },
   ]},
   { section: 'COMPLIANCE', items: [

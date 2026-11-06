@@ -44,14 +44,14 @@ router.get('/', async (req, res) => {
 
 // POST /api/fuel
 router.post('/', async (req, res) => {
-  const { truck_id, purchase_date, state, gallons, cost_per_gallon, total_cost, vendor, notes } = req.body;
+  const { truck_id, purchase_date, state, gallons, cost_per_gallon, total_cost, vendor, notes, card_last3 } = req.body;
   if (!purchase_date || !state || !gallons) return res.status(400).json({ error: 'purchase_date, state, gallons required' });
   try {
     const total = total_cost || (parseFloat(gallons) * parseFloat(cost_per_gallon || 0));
     const result = await db.query(
-      `INSERT INTO fuel_purchases (truck_id, purchase_date, state, gallons, cost_per_gallon, total_cost, vendor, notes)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-      [truck_id || null, purchase_date, state.toUpperCase(), gallons, cost_per_gallon, total, vendor, notes]
+      `INSERT INTO fuel_purchases (truck_id, purchase_date, state, gallons, cost_per_gallon, total_cost, vendor, notes, card_last3)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+      [truck_id || null, purchase_date, state.toUpperCase(), gallons, cost_per_gallon, total, vendor, notes, card_last3 || null]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -61,13 +61,13 @@ router.post('/', async (req, res) => {
 
 // PUT /api/fuel/:id
 router.put('/:id', async (req, res) => {
-  const { truck_id, purchase_date, state, gallons, cost_per_gallon, total_cost, vendor, notes } = req.body;
+  const { truck_id, purchase_date, state, gallons, cost_per_gallon, total_cost, vendor, notes, card_last3 } = req.body;
   try {
     const total = total_cost || (parseFloat(gallons) * parseFloat(cost_per_gallon || 0));
     const result = await db.query(
-      `UPDATE fuel_purchases SET truck_id=$1, purchase_date=$2, state=$3, gallons=$4, cost_per_gallon=$5, total_cost=$6, vendor=$7, notes=$8
-       WHERE id=$9 RETURNING *`,
-      [truck_id || null, purchase_date, state.toUpperCase(), gallons, cost_per_gallon, total, vendor, notes, req.params.id]
+      `UPDATE fuel_purchases SET truck_id=$1, purchase_date=$2, state=$3, gallons=$4, cost_per_gallon=$5, total_cost=$6, vendor=$7, notes=$8, card_last3=$9
+       WHERE id=$10 RETURNING *`,
+      [truck_id || null, purchase_date, state.toUpperCase(), gallons, cost_per_gallon, total, vendor, notes, card_last3 || null, req.params.id]
     );
     res.json(result.rows[0]);
   } catch (err) {
